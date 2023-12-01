@@ -2,11 +2,12 @@ package config
 
 import (
 	"fmt"
+	"go-web-mini/util"
+	"os"
+
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
-	"go-web-mini/util"
 	"go.uber.org/zap/zapcore"
-	"os"
 )
 
 // 系统配置，对应yml
@@ -32,8 +33,8 @@ func InitConfig() {
 	}
 
 	viper.SetConfigName("config")
-	viper.SetConfigType("yml")
-	viper.AddConfigPath(workDir + "./")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(workDir + "/")
 	// 读取配置信息
 	err = viper.ReadInConfig()
 

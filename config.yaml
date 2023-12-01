@@ -31,11 +31,11 @@ mysql:
   # 用户名
   username: root
   # 密码
-  password: 123456
+  password: 'Root@20211001'
   # 数据库名
   database: go_web_mini
   # 主机地址
-  host: localhost
+  host: 127.0.0.1
   # 端口
   port: 3306
   # 连接字符串参数
