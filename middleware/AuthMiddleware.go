@@ -2,16 +2,17 @@ package middleware
 
 import (
 	"fmt"
-	jwt "github.com/appleboy/gin-jwt/v2"
-	"github.com/gin-gonic/gin"
+	"go-web-mini/app/admin/model"
+	"go-web-mini/app/admin/repository"
+	"go-web-mini/app/admin/vo"
 	"go-web-mini/common"
 	"go-web-mini/config"
-	"go-web-mini/model"
-	"go-web-mini/repository"
-	"go-web-mini/response"
-	"go-web-mini/util"
-	"go-web-mini/vo"
+	pkg_response "go-web-mini/pkg/response"
+	pkg_util "go-web-mini/pkg/util"
 	"time"
+
+	jwt "github.com/appleboy/gin-jwt/v2"
+	"github.com/gin-gonic/gin"
 )
 
 // 初始化jwt中间件
@@ -41,7 +42,7 @@ func payloadFunc(data interface{}) jwt.MapClaims {
 	if v, ok := data.(map[string]interface{}); ok {
 		var user model.User
 		// 将用户json转为结构体
-		util.JsonI2Struct(v["user"], &user)
+		pkg_util.JsonI2Struct(v["user"], &user)
 		return jwt.MapClaims{
 			jwt.IdentityKey: user.ID,
 			"user":          v["user"],
@@ -69,7 +70,7 @@ func login(c *gin.Context) (interface{}, error) {
 	}
 
 	// 密码通过RSA解密
-	decodeData, err := util.RSADecrypt([]byte(req.Password), config.Conf.System.RSAPrivateBytes)
+	decodeData, err := pkg_util.RSADecrypt([]byte(req.Password), config.Conf.System.RSAPrivateBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +88,7 @@ func login(c *gin.Context) (interface{}, error) {
 	}
 	// 将用户以json格式写入, payloadFunc/authorizator会使用到
 	return map[string]interface{}{
-		"user": util.Struct2Json(user),
+		"user": pkg_util.Struct2Json(user),
 	}, nil
 }
 
@@ -97,7 +98,7 @@ func authorizator(data interface{}, c *gin.Context) bool {
 		userStr := v["user"].(string)
 		var user model.User
 		// 将用户json转为结构体
-		util.Json2Struct(userStr, &user)
+		pkg_util.Json2Struct(userStr, &user)
 		// 将用户保存到context, api调用时取数据方便
 		c.Set("user", user)
 		return true
@@ -107,31 +108,35 @@ func authorizator(data interface{}, c *gin.Context) bool {
 
 // 用户登录校验失败处理
 func unauthorized(c *gin.Context, code int, message string) {
+	ctx := pkg_response.Ctx{Context: c}
 	common.Log.Debugf("JWT认证失败, 错误码: %d, 错误信息: %s", code, message)
-	response.Response(c, code, code, nil, fmt.Sprintf("JWT认证失败, 错误码: %d, 错误信息: %s", code, message))
+	ctx.Response(code, code, nil, pkg_response.ResponseMessage{Msg: fmt.Sprintf("JWT认证失败, 错误码: %d, 错误信息: %s", code, message)})
 }
 
 // 登录成功后的响应
 func loginResponse(c *gin.Context, code int, token string, expires time.Time) {
-	response.Response(c, code, code,
+	ctx := pkg_response.Ctx{Context: c}
+	ctx.Response(code, code,
 		gin.H{
 			"token":   token,
 			"expires": expires.Format("2006-01-02 15:04:05"),
 		},
-		"登录成功")
+		pkg_response.ResponseMessage{Msg: "登录成功"})
 }
 
 // 登出后的响应
 func logoutResponse(c *gin.Context, code int) {
-	response.Success(c, nil, "退出成功")
+
+	pkg_response.Success(c, nil, "退出成功")
 }
 
 // 刷新token后的响应
 func refreshResponse(c *gin.Context, code int, token string, expires time.Time) {
-	response.Response(c, code, code,
+	ctx := pkg_response.Ctx{Context: c}
+	ctx.Response(code, code,
 		gin.H{
 			"token":   token,
 			"expires": expires,
 		},
-		"刷新token成功")
+		pkg_response.ResponseMessage{Msg: "刷新token成功"})
 }

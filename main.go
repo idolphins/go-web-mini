@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"go-web-mini/app/admin/repository"
 	"go-web-mini/common"
 	"go-web-mini/config"
 	"go-web-mini/middleware"
-	"go-web-mini/repository"
 	"go-web-mini/routes"
 	"net/http"
 	"os"
@@ -15,8 +15,7 @@ import (
 	"time"
 )
 
-func main() {
-
+func init() {
 	// 加载配置文件到全局配置结构体
 	config.InitConfig()
 
@@ -34,6 +33,9 @@ func main() {
 
 	// 初始化mysql数据
 	common.InitData()
+}
+
+func main() {
 
 	// 操作日志中间件处理日志时没有将日志发送到rabbitmq或者kafka中, 而是发送到了channel中
 	// 这里开启3个goroutine处理channel将日志记录到数据库

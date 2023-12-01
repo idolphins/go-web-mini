@@ -2,7 +2,8 @@ package config
 
 import (
 	"fmt"
-	"go-web-mini/util"
+	pkg_util "go-web-mini/pkg/util"
+
 	"os"
 
 	"github.com/fsnotify/fsnotify"
@@ -10,8 +11,8 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// 系统配置，对应yml
-// viper内置了mapstructure, yml文件用"-"区分单词, 转为驼峰方便
+// 系统配置，对应yaml
+// viper内置了mapstructure, yaml文件用"-"区分单词, 转为驼峰方便
 
 // 全局配置变量
 var Conf = new(config)
@@ -46,8 +47,8 @@ func InitConfig() {
 			panic(fmt.Errorf("初始化配置文件失败:%s \n", err))
 		}
 		// 读取rsa key
-		Conf.System.RSAPublicBytes = util.RSAReadKeyFromFile(Conf.System.RSAPublicKey)
-		Conf.System.RSAPrivateBytes = util.RSAReadKeyFromFile(Conf.System.RSAPrivateKey)
+		Conf.System.RSAPublicBytes = pkg_util.RSAReadKeyFromFile(Conf.System.RSAPublicKey)
+		Conf.System.RSAPrivateBytes = pkg_util.RSAReadKeyFromFile(Conf.System.RSAPrivateKey)
 	})
 
 	if err != nil {
@@ -58,8 +59,8 @@ func InitConfig() {
 		panic(fmt.Errorf("初始化配置文件失败:%s \n", err))
 	}
 	// 读取rsa key
-	Conf.System.RSAPublicBytes = util.RSAReadKeyFromFile(Conf.System.RSAPublicKey)
-	Conf.System.RSAPrivateBytes = util.RSAReadKeyFromFile(Conf.System.RSAPrivateKey)
+	Conf.System.RSAPublicBytes = pkg_util.RSAReadKeyFromFile(Conf.System.RSAPublicKey)
+	Conf.System.RSAPrivateBytes = pkg_util.RSAReadKeyFromFile(Conf.System.RSAPrivateKey)
 
 }
 

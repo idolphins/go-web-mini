@@ -2,15 +2,16 @@ package controller
 
 import (
 	"fmt"
+	"go-web-mini/app/admin/model"
+	"go-web-mini/app/admin/repository"
+	"go-web-mini/app/admin/vo"
+	"go-web-mini/common"
+	pkg_response "go-web-mini/pkg/response"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/thoas/go-funk"
-	"go-web-mini/common"
-	"go-web-mini/model"
-	"go-web-mini/repository"
-	"go-web-mini/response"
-	"go-web-mini/vo"
-	"strconv"
 )
 
 type IRoleController interface {
@@ -39,23 +40,23 @@ func (rc RoleController) GetRoles(c *gin.Context) {
 	var req vo.RoleListRequest
 	// 参数绑定
 	if err := c.ShouldBind(&req); err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	// 参数校验
 	if err := common.Validate.Struct(&req); err != nil {
 		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
-		response.Fail(c, nil, errStr)
+		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
 	// 获取角色列表
 	roles, total, err := rc.RoleRepository.GetRoles(&req)
 	if err != nil {
-		response.Fail(c, nil, "获取角色列表失败: "+err.Error())
+		pkg_response.Fail(c, nil, "获取角色列表失败: "+err.Error())
 		return
 	}
-	response.Success(c, gin.H{"roles": roles, "total": total}, "获取角色列表成功")
+	pkg_response.Success(c, gin.H{"roles": roles, "total": total}, "获取角色列表成功")
 }
 
 // 创建角色
@@ -63,13 +64,13 @@ func (rc RoleController) CreateRole(c *gin.Context) {
 	var req vo.CreateRoleRequest
 	// 参数绑定
 	if err := c.ShouldBind(&req); err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	// 参数校验
 	if err := common.Validate.Struct(&req); err != nil {
 		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
-		response.Fail(c, nil, errStr)
+		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
@@ -77,13 +78,13 @@ func (rc RoleController) CreateRole(c *gin.Context) {
 	uc := repository.NewUserRepository()
 	sort, ctxUser, err := uc.GetCurrentUserMinRoleSort(c)
 	if err != nil {
-		response.Fail(c, nil, "获取当前用户最高角色等级失败: "+err.Error())
+		pkg_response.Fail(c, nil, "获取当前用户最高角色等级失败: "+err.Error())
 		return
 	}
 
 	// 用户不能创建比自己等级高或相同等级的角色
 	if sort >= req.Sort {
-		response.Fail(c, nil, "不能创建比自己等级高或相同等级的角色")
+		pkg_response.Fail(c, nil, "不能创建比自己等级高或相同等级的角色")
 		return
 	}
 
@@ -99,10 +100,10 @@ func (rc RoleController) CreateRole(c *gin.Context) {
 	// 创建角色
 	err = rc.RoleRepository.CreateRole(&role)
 	if err != nil {
-		response.Fail(c, nil, "创建角色失败: "+err.Error())
+		pkg_response.Fail(c, nil, "创建角色失败: "+err.Error())
 		return
 	}
-	response.Success(c, nil, "创建角色成功")
+	pkg_response.Success(c, nil, "创建角色成功")
 
 }
 
@@ -111,19 +112,19 @@ func (rc RoleController) UpdateRoleById(c *gin.Context) {
 	var req vo.CreateRoleRequest
 	// 参数绑定
 	if err := c.ShouldBind(&req); err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	// 参数校验
 	if err := common.Validate.Struct(&req); err != nil {
 		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
-		response.Fail(c, nil, errStr)
+		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 	// 获取path中的roleId
 	roleId, _ := strconv.Atoi(c.Param("roleId"))
 	if roleId <= 0 {
-		response.Fail(c, nil, "角色ID不正确")
+		pkg_response.Fail(c, nil, "角色ID不正确")
 		return
 	}
 
@@ -131,7 +132,7 @@ func (rc RoleController) UpdateRoleById(c *gin.Context) {
 	ur := repository.NewUserRepository()
 	minSort, ctxUser, err := ur.GetCurrentUserMinRoleSort(c)
 	if err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 
@@ -139,21 +140,21 @@ func (rc RoleController) UpdateRoleById(c *gin.Context) {
 	// 根据path中的角色ID获取该角色信息
 	roles, err := rc.RoleRepository.GetRolesByIds([]uint{uint(roleId)})
 	if err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	if len(roles) == 0 {
-		response.Fail(c, nil, "未获取到角色信息")
+		pkg_response.Fail(c, nil, "未获取到角色信息")
 		return
 	}
 	if minSort >= roles[0].Sort {
-		response.Fail(c, nil, "不能更新比自己角色等级高或相等的角色")
+		pkg_response.Fail(c, nil, "不能更新比自己角色等级高或相等的角色")
 		return
 	}
 
 	// 不能把角色等级更新得比当前用户的等级高
 	if minSort >= req.Sort {
-		response.Fail(c, nil, "不能把角色等级更新得比当前用户的等级高或相同")
+		pkg_response.Fail(c, nil, "不能把角色等级更新得比当前用户的等级高或相同")
 		return
 	}
 
@@ -169,7 +170,7 @@ func (rc RoleController) UpdateRoleById(c *gin.Context) {
 	// 更新角色
 	err = rc.RoleRepository.UpdateRoleById(uint(roleId), &role)
 	if err != nil {
-		response.Fail(c, nil, "更新角色失败: "+err.Error())
+		pkg_response.Fail(c, nil, "更新角色失败: "+err.Error())
 		return
 	}
 
@@ -178,7 +179,7 @@ func (rc RoleController) UpdateRoleById(c *gin.Context) {
 		// 获取policy
 		rolePolicies := common.CasbinEnforcer.GetFilteredPolicy(0, roles[0].Keyword)
 		if len(rolePolicies) == 0 {
-			response.Success(c, nil, "更新角色成功")
+			pkg_response.Success(c, nil, "更新角色成功")
 			return
 		}
 		rolePoliciesCopy := make([][]string, 0)
@@ -193,24 +194,24 @@ func (rc RoleController) UpdateRoleById(c *gin.Context) {
 		//gormadapter未实现UpdatePolicies方法，等gorm更新---
 		//isUpdated, _ := common.CasbinEnforcer.UpdatePolicies(rolePoliciesCopy, rolePolicies)
 		//if !isUpdated {
-		//	response.Fail(c, nil, "更新角色成功，但角色关键字关联的权限接口更新失败！")
+		//	pkg_response.Fail(c, nil, "更新角色成功，但角色关键字关联的权限接口更新失败！")
 		//	return
 		//}
 
 		// 这里需要先新增再删除（先删除再增加会出错）
 		isAdded, _ := common.CasbinEnforcer.AddPolicies(rolePolicies)
 		if !isAdded {
-			response.Fail(c, nil, "更新角色成功，但角色关键字关联的权限接口更新失败")
+			pkg_response.Fail(c, nil, "更新角色成功，但角色关键字关联的权限接口更新失败")
 			return
 		}
 		isRemoved, _ := common.CasbinEnforcer.RemovePolicies(rolePoliciesCopy)
 		if !isRemoved {
-			response.Fail(c, nil, "更新角色成功，但角色关键字关联的权限接口更新失败")
+			pkg_response.Fail(c, nil, "更新角色成功，但角色关键字关联的权限接口更新失败")
 			return
 		}
 		err := common.CasbinEnforcer.LoadPolicy()
 		if err != nil {
-			response.Fail(c, nil, "更新角色成功，但角色关键字关联角色的权限接口策略加载失败")
+			pkg_response.Fail(c, nil, "更新角色成功，但角色关键字关联角色的权限接口策略加载失败")
 			return
 		}
 
@@ -222,7 +223,7 @@ func (rc RoleController) UpdateRoleById(c *gin.Context) {
 	// 2.直接清理缓存，让活跃的用户自己重新缓存最新用户信息
 	ur.ClearUserInfoCache()
 
-	response.Success(c, nil, "更新角色成功")
+	pkg_response.Success(c, nil, "更新角色成功")
 }
 
 // 获取角色的权限菜单
@@ -230,15 +231,15 @@ func (rc RoleController) GetRoleMenusById(c *gin.Context) {
 	// 获取path中的roleId
 	roleId, _ := strconv.Atoi(c.Param("roleId"))
 	if roleId <= 0 {
-		response.Fail(c, nil, "角色ID不正确")
+		pkg_response.Fail(c, nil, "角色ID不正确")
 		return
 	}
 	menus, err := rc.RoleRepository.GetRoleMenusById(uint(roleId))
 	if err != nil {
-		response.Fail(c, nil, "获取角色的权限菜单失败: "+err.Error())
+		pkg_response.Fail(c, nil, "获取角色的权限菜单失败: "+err.Error())
 		return
 	}
-	response.Success(c, gin.H{"menus": menus}, "获取角色的权限菜单成功")
+	pkg_response.Success(c, gin.H{"menus": menus}, "获取角色的权限菜单成功")
 }
 
 // 更新角色的权限菜单
@@ -246,29 +247,29 @@ func (rc RoleController) UpdateRoleMenusById(c *gin.Context) {
 	var req vo.UpdateRoleMenusRequest
 	// 参数绑定
 	if err := c.ShouldBind(&req); err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	// 参数校验
 	if err := common.Validate.Struct(&req); err != nil {
 		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
-		response.Fail(c, nil, errStr)
+		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 	// 获取path中的roleId
 	roleId, _ := strconv.Atoi(c.Param("roleId"))
 	if roleId <= 0 {
-		response.Fail(c, nil, "角色ID不正确")
+		pkg_response.Fail(c, nil, "角色ID不正确")
 		return
 	}
 	// 根据path中的角色ID获取该角色信息
 	roles, err := rc.RoleRepository.GetRolesByIds([]uint{uint(roleId)})
 	if err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	if len(roles) == 0 {
-		response.Fail(c, nil, "未获取到角色信息")
+		pkg_response.Fail(c, nil, "未获取到角色信息")
 		return
 	}
 
@@ -276,14 +277,14 @@ func (rc RoleController) UpdateRoleMenusById(c *gin.Context) {
 	ur := repository.NewUserRepository()
 	minSort, ctxUser, err := ur.GetCurrentUserMinRoleSort(c)
 	if err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 
 	// (非管理员)不能更新比自己角色等级高或相等角色的权限菜单
 	if minSort != 1 {
 		if minSort >= roles[0].Sort {
-			response.Fail(c, nil, "不能更新比自己角色等级高或相等角色的权限菜单")
+			pkg_response.Fail(c, nil, "不能更新比自己角色等级高或相等角色的权限菜单")
 			return
 		}
 	}
@@ -292,7 +293,7 @@ func (rc RoleController) UpdateRoleMenusById(c *gin.Context) {
 	mr := repository.NewMenuRepository()
 	ctxUserMenus, err := mr.GetUserMenusByUserId(ctxUser.ID)
 	if err != nil {
-		response.Fail(c, nil, "获取当前用户的可访问菜单列表失败: "+err.Error())
+		pkg_response.Fail(c, nil, "获取当前用户的可访问菜单列表失败: "+err.Error())
 		return
 	}
 
@@ -312,7 +313,7 @@ func (rc RoleController) UpdateRoleMenusById(c *gin.Context) {
 	if minSort != 1 {
 		for _, id := range menuIds {
 			if !funk.Contains(ctxUserMenusIds, id) {
-				response.Fail(c, nil, fmt.Sprintf("无权设置ID为%d的菜单", id))
+				pkg_response.Fail(c, nil, fmt.Sprintf("无权设置ID为%d的菜单", id))
 				return
 			}
 		}
@@ -330,7 +331,7 @@ func (rc RoleController) UpdateRoleMenusById(c *gin.Context) {
 		// 根据menuIds查询查询菜单
 		menus, err := mr.GetMenus()
 		if err != nil {
-			response.Fail(c, nil, "获取菜单列表失败: "+err.Error())
+			pkg_response.Fail(c, nil, "获取菜单列表失败: "+err.Error())
 			return
 		}
 		for _, menuId := range menuIds {
@@ -346,11 +347,11 @@ func (rc RoleController) UpdateRoleMenusById(c *gin.Context) {
 
 	err = rc.RoleRepository.UpdateRoleMenus(roles[0])
 	if err != nil {
-		response.Fail(c, nil, "更新角色的权限菜单失败: "+err.Error())
+		pkg_response.Fail(c, nil, "更新角色的权限菜单失败: "+err.Error())
 		return
 	}
 
-	response.Success(c, nil, "更新角色的权限菜单成功")
+	pkg_response.Success(c, nil, "更新角色的权限菜单成功")
 
 }
 
@@ -359,27 +360,27 @@ func (rc RoleController) GetRoleApisById(c *gin.Context) {
 	// 获取path中的roleId
 	roleId, _ := strconv.Atoi(c.Param("roleId"))
 	if roleId <= 0 {
-		response.Fail(c, nil, "角色ID不正确")
+		pkg_response.Fail(c, nil, "角色ID不正确")
 		return
 	}
 	// 根据path中的角色ID获取该角色信息
 	roles, err := rc.RoleRepository.GetRolesByIds([]uint{uint(roleId)})
 	if err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	if len(roles) == 0 {
-		response.Fail(c, nil, "未获取到角色信息")
+		pkg_response.Fail(c, nil, "未获取到角色信息")
 		return
 	}
 	// 根据角色keyword获取casbin中policy
 	keyword := roles[0].Keyword
 	apis, err := rc.RoleRepository.GetRoleApisByRoleKeyword(keyword)
 	if err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
-	response.Success(c, gin.H{"apis": apis}, "获取角色的权限接口成功")
+	pkg_response.Success(c, gin.H{"apis": apis}, "获取角色的权限接口成功")
 }
 
 // 更新角色的权限接口
@@ -387,30 +388,30 @@ func (rc RoleController) UpdateRoleApisById(c *gin.Context) {
 	var req vo.UpdateRoleApisRequest
 	// 参数绑定
 	if err := c.ShouldBind(&req); err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	// 参数校验
 	if err := common.Validate.Struct(&req); err != nil {
 		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
-		response.Fail(c, nil, errStr)
+		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
 	// 获取path中的roleId
 	roleId, _ := strconv.Atoi(c.Param("roleId"))
 	if roleId <= 0 {
-		response.Fail(c, nil, "角色ID不正确")
+		pkg_response.Fail(c, nil, "角色ID不正确")
 		return
 	}
 	// 根据path中的角色ID获取该角色信息
 	roles, err := rc.RoleRepository.GetRolesByIds([]uint{uint(roleId)})
 	if err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	if len(roles) == 0 {
-		response.Fail(c, nil, "未获取到角色信息")
+		pkg_response.Fail(c, nil, "未获取到角色信息")
 		return
 	}
 
@@ -418,14 +419,14 @@ func (rc RoleController) UpdateRoleApisById(c *gin.Context) {
 	ur := repository.NewUserRepository()
 	minSort, ctxUser, err := ur.GetCurrentUserMinRoleSort(c)
 	if err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 
 	// (非管理员)不能更新比自己角色等级高或相等角色的权限接口
 	if minSort != 1 {
 		if minSort >= roles[0].Sort {
-			response.Fail(c, nil, "不能更新比自己角色等级高或相等角色的权限接口")
+			pkg_response.Fail(c, nil, "不能更新比自己角色等级高或相等角色的权限接口")
 			return
 		}
 	}
@@ -448,7 +449,7 @@ func (rc RoleController) UpdateRoleApisById(c *gin.Context) {
 	ar := repository.NewApiRepository()
 	apis, err := ar.GetApisById(apiIds)
 	if err != nil {
-		response.Fail(c, nil, "根据接口ID获取接口信息失败")
+		pkg_response.Fail(c, nil, "根据接口ID获取接口信息失败")
 		return
 	}
 	// 生成前端想要设置的角色policies
@@ -463,7 +464,7 @@ func (rc RoleController) UpdateRoleApisById(c *gin.Context) {
 	if minSort != 1 {
 		for _, reqPolicy := range reqRolePolicies {
 			if !funk.Contains(ctxRolesPolicies, reqPolicy) {
-				response.Fail(c, nil, fmt.Sprintf("无权设置路径为%s,请求方式为%s的接口", reqPolicy[1], reqPolicy[2]))
+				pkg_response.Fail(c, nil, fmt.Sprintf("无权设置路径为%s,请求方式为%s的接口", reqPolicy[1], reqPolicy[2]))
 				return
 			}
 		}
@@ -472,11 +473,11 @@ func (rc RoleController) UpdateRoleApisById(c *gin.Context) {
 	// 更新角色的权限接口
 	err = rc.RoleRepository.UpdateRoleApis(roles[0].Keyword, reqRolePolicies)
 	if err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 
-	response.Success(c, nil, "更新角色的权限接口成功")
+	pkg_response.Success(c, nil, "更新角色的权限接口成功")
 
 }
 
@@ -485,13 +486,13 @@ func (rc RoleController) BatchDeleteRoleByIds(c *gin.Context) {
 	var req vo.DeleteRoleRequest
 	// 参数绑定
 	if err := c.ShouldBind(&req); err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	// 参数校验
 	if err := common.Validate.Struct(&req); err != nil {
 		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
-		response.Fail(c, nil, errStr)
+		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
@@ -499,7 +500,7 @@ func (rc RoleController) BatchDeleteRoleByIds(c *gin.Context) {
 	ur := repository.NewUserRepository()
 	minSort, _, err := ur.GetCurrentUserMinRoleSort(c)
 	if err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 
@@ -508,18 +509,18 @@ func (rc RoleController) BatchDeleteRoleByIds(c *gin.Context) {
 	// 获取角色信息
 	roles, err := rc.RoleRepository.GetRolesByIds(roleIds)
 	if err != nil {
-		response.Fail(c, nil, "获取角色信息失败: "+err.Error())
+		pkg_response.Fail(c, nil, "获取角色信息失败: "+err.Error())
 		return
 	}
 	if len(roles) == 0 {
-		response.Fail(c, nil, "未获取到角色信息")
+		pkg_response.Fail(c, nil, "未获取到角色信息")
 		return
 	}
 
 	// 不能删除比自己角色等级高或相等的角色
 	for _, role := range roles {
 		if minSort >= role.Sort {
-			response.Fail(c, nil, "不能删除比自己角色等级高或相等的角色")
+			pkg_response.Fail(c, nil, "不能删除比自己角色等级高或相等的角色")
 			return
 		}
 	}
@@ -527,12 +528,12 @@ func (rc RoleController) BatchDeleteRoleByIds(c *gin.Context) {
 	// 删除角色
 	err = rc.RoleRepository.BatchDeleteRoleByIds(roleIds)
 	if err != nil {
-		response.Fail(c, nil, "删除角色失败")
+		pkg_response.Fail(c, nil, "删除角色失败")
 		return
 	}
 
 	// 删除角色成功直接清理缓存，让活跃的用户自己重新缓存最新用户信息
 	ur.ClearUserInfoCache()
-	response.Success(c, nil, "删除角色成功")
+	pkg_response.Success(c, nil, "删除角色成功")
 
 }

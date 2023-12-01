@@ -1,14 +1,15 @@
 package controller
 
 import (
+	"go-web-mini/app/admin/model"
+	"go-web-mini/app/admin/repository"
+	"go-web-mini/app/admin/vo"
+	"go-web-mini/common"
+	pkg_response "go-web-mini/pkg/response"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"go-web-mini/common"
-	"go-web-mini/model"
-	"go-web-mini/repository"
-	"go-web-mini/response"
-	"go-web-mini/vo"
-	"strconv"
 )
 
 type IApiController interface {
@@ -34,22 +35,22 @@ func (ac ApiController) GetApis(c *gin.Context) {
 	var req vo.ApiListRequest
 	// 参数绑定
 	if err := c.ShouldBind(&req); err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	// 参数校验
 	if err := common.Validate.Struct(&req); err != nil {
 		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
-		response.Fail(c, nil, errStr)
+		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 	// 获取
 	apis, total, err := ac.ApiRepository.GetApis(&req)
 	if err != nil {
-		response.Fail(c, nil, "获取接口列表失败")
+		pkg_response.Fail(c, nil, "获取接口列表失败")
 		return
 	}
-	response.Success(c, gin.H{
+	pkg_response.Success(c, gin.H{
 		"apis": apis, "total": total,
 	}, "获取接口列表成功")
 }
@@ -58,10 +59,10 @@ func (ac ApiController) GetApis(c *gin.Context) {
 func (ac ApiController) GetApiTree(c *gin.Context) {
 	tree, err := ac.ApiRepository.GetApiTree()
 	if err != nil {
-		response.Fail(c, nil, "获取接口树失败")
+		pkg_response.Fail(c, nil, "获取接口树失败")
 		return
 	}
-	response.Success(c, gin.H{
+	pkg_response.Success(c, gin.H{
 		"apiTree": tree,
 	}, "获取接口树成功")
 }
@@ -71,13 +72,13 @@ func (ac ApiController) CreateApi(c *gin.Context) {
 	var req vo.CreateApiRequest
 	// 参数绑定
 	if err := c.ShouldBind(&req); err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	// 参数校验
 	if err := common.Validate.Struct(&req); err != nil {
 		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
-		response.Fail(c, nil, errStr)
+		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
@@ -85,7 +86,7 @@ func (ac ApiController) CreateApi(c *gin.Context) {
 	ur := repository.NewUserRepository()
 	ctxUser, err := ur.GetCurrentUser(c)
 	if err != nil {
-		response.Fail(c, nil, "获取当前用户信息失败")
+		pkg_response.Fail(c, nil, "获取当前用户信息失败")
 		return
 	}
 
@@ -100,11 +101,11 @@ func (ac ApiController) CreateApi(c *gin.Context) {
 	// 创建接口
 	err = ac.ApiRepository.CreateApi(&api)
 	if err != nil {
-		response.Fail(c, nil, "创建接口失败: "+err.Error())
+		pkg_response.Fail(c, nil, "创建接口失败: "+err.Error())
 		return
 	}
 
-	response.Success(c, nil, "创建接口成功")
+	pkg_response.Success(c, nil, "创建接口成功")
 	return
 }
 
@@ -113,20 +114,20 @@ func (ac ApiController) UpdateApiById(c *gin.Context) {
 	var req vo.UpdateApiRequest
 	// 参数绑定
 	if err := c.ShouldBind(&req); err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	// 参数校验
 	if err := common.Validate.Struct(&req); err != nil {
 		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
-		response.Fail(c, nil, errStr)
+		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
 	// 获取路径中的apiId
 	apiId, _ := strconv.Atoi(c.Param("apiId"))
 	if apiId <= 0 {
-		response.Fail(c, nil, "接口ID不正确")
+		pkg_response.Fail(c, nil, "接口ID不正确")
 		return
 	}
 
@@ -134,7 +135,7 @@ func (ac ApiController) UpdateApiById(c *gin.Context) {
 	ur := repository.NewUserRepository()
 	ctxUser, err := ur.GetCurrentUser(c)
 	if err != nil {
-		response.Fail(c, nil, "获取当前用户信息失败")
+		pkg_response.Fail(c, nil, "获取当前用户信息失败")
 		return
 	}
 
@@ -148,11 +149,11 @@ func (ac ApiController) UpdateApiById(c *gin.Context) {
 
 	err = ac.ApiRepository.UpdateApiById(uint(apiId), &api)
 	if err != nil {
-		response.Fail(c, nil, "更新接口失败: "+err.Error())
+		pkg_response.Fail(c, nil, "更新接口失败: "+err.Error())
 		return
 	}
 
-	response.Success(c, nil, "更新接口成功")
+	pkg_response.Success(c, nil, "更新接口成功")
 }
 
 // 批量删除接口
@@ -160,22 +161,22 @@ func (ac ApiController) BatchDeleteApiByIds(c *gin.Context) {
 	var req vo.DeleteApiRequest
 	// 参数绑定
 	if err := c.ShouldBind(&req); err != nil {
-		response.Fail(c, nil, err.Error())
+		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
 	// 参数校验
 	if err := common.Validate.Struct(&req); err != nil {
 		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
-		response.Fail(c, nil, errStr)
+		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
 	// 删除接口
 	err := ac.ApiRepository.BatchDeleteApiByIds(req.ApiIds)
 	if err != nil {
-		response.Fail(c, nil, "删除接口失败: "+err.Error())
+		pkg_response.Fail(c, nil, "删除接口失败: "+err.Error())
 		return
 	}
 
-	response.Success(c, nil, "删除接口成功")
+	pkg_response.Success(c, nil, "删除接口成功")
 }

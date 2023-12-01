@@ -1,6 +1,6 @@
 package dto
 
-import "go-web-mini/model"
+import "go-web-mini/app/admin/model"
 
 type ApiTreeDto struct {
 	ID       int          `json:"ID"`

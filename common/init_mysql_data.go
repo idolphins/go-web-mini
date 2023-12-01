@@ -2,10 +2,11 @@ package common
 
 import (
 	"errors"
-	"github.com/thoas/go-funk"
+	"go-web-mini/app/admin/model"
 	"go-web-mini/config"
-	"go-web-mini/model"
-	"go-web-mini/util"
+	pkg_util "go-web-mini/pkg/util"
+
+	"github.com/thoas/go-funk"
 	"gorm.io/gorm"
 )
 
@@ -183,7 +184,7 @@ func InitData() {
 		{
 			Model:        gorm.Model{ID: 1},
 			Username:     "admin",
-			Password:     util.GenPasswd("123456"),
+			Password:     pkg_util.GenPasswd("123456"),
 			Mobile:       "18888888888",
 			Avatar:       "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
 			Nickname:     new(string),
@@ -195,7 +196,7 @@ func InitData() {
 		{
 			Model:        gorm.Model{ID: 2},
 			Username:     "faker",
-			Password:     util.GenPasswd("123456"),
+			Password:     pkg_util.GenPasswd("123456"),
 			Mobile:       "19999999999",
 			Avatar:       "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
 			Nickname:     new(string),
@@ -207,7 +208,7 @@ func InitData() {
 		{
 			Model:        gorm.Model{ID: 3},
 			Username:     "nike",
-			Password:     util.GenPasswd("123456"),
+			Password:     pkg_util.GenPasswd("123456"),
 			Mobile:       "13333333333",
 			Avatar:       "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
 			Nickname:     new(string),
@@ -219,7 +220,7 @@ func InitData() {
 		{
 			Model:        gorm.Model{ID: 4},
 			Username:     "bob",
-			Password:     util.GenPasswd("123456"),
+			Password:     pkg_util.GenPasswd("123456"),
 			Mobile:       "15555555555",
 			Avatar:       "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
 			Nickname:     new(string),

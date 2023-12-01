@@ -1,12 +1,13 @@
 package middleware
 
 import (
-	"github.com/gin-gonic/gin"
+	"go-web-mini/app/admin/model"
+	"go-web-mini/app/admin/repository"
 	"go-web-mini/config"
-	"go-web-mini/model"
-	"go-web-mini/repository"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // 操作日志channel

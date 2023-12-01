@@ -1,10 +1,11 @@
 package routes
 
 import (
+	"go-web-mini/app/admin/controller"
+	"go-web-mini/middleware"
+
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-	"go-web-mini/controller"
-	"go-web-mini/middleware"
 )
 
 // 注册用户路由

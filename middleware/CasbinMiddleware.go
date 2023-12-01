@@ -1,11 +1,13 @@
 package middleware
 
 import (
-	"github.com/gin-gonic/gin"
+	"go-web-mini/app/admin/repository"
 	"go-web-mini/common"
 	"go-web-mini/config"
-	"go-web-mini/repository"
-	"go-web-mini/response"
+	pkg_response "go-web-mini/pkg/response"
+
+	"github.com/gin-gonic/gin"
+
 	"strings"
 	"sync"
 )
@@ -15,15 +17,17 @@ var checkLock sync.Mutex
 // Casbin中间件, 基于RBAC的权限访问控制模型
 func CasbinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := pkg_response.Ctx{Context: c}
 		ur := repository.NewUserRepository()
 		user, err := ur.GetCurrentUser(c)
 		if err != nil {
-			response.Response(c, 401, 401, nil, "用户未登录")
+			ctx.Response(401, 401, nil, pkg_response.ResponseMessage{Msg: "用户未登录"})
 			c.Abort()
 			return
 		}
 		if user.Status != 1 {
-			response.Response(c, 401, 401, nil, "当前用户已被禁用")
+			ctx.Response(401, 401, nil, pkg_response.ResponseMessage{Msg: "当前用户已被禁用"})
+
 			c.Abort()
 			return
 		}
@@ -44,7 +48,8 @@ func CasbinMiddleware() gin.HandlerFunc {
 
 		isPass := check(subs, obj, act)
 		if !isPass {
-			response.Response(c, 401, 401, nil, "没有权限")
+			ctx.Response(401, 401, nil, pkg_response.ResponseMessage{Msg: "没有权限"})
+
 			c.Abort()
 			return
 		}

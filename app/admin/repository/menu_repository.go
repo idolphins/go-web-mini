@@ -1,9 +1,10 @@
 package repository
 
 import (
-	"github.com/thoas/go-funk"
+	"go-web-mini/app/admin/model"
 	"go-web-mini/common"
-	"go-web-mini/model"
+
+	"github.com/thoas/go-funk"
 )
 
 type IMenuRepository interface {

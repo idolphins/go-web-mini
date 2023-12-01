@@ -3,15 +3,16 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"go-web-mini/app/admin/model"
+	"go-web-mini/app/admin/vo"
+	"go-web-mini/common"
+	pkg_util "go-web-mini/pkg/util"
+	"strings"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/patrickmn/go-cache"
 	"github.com/thoas/go-funk"
-	"go-web-mini/common"
-	"go-web-mini/model"
-	"go-web-mini/util"
-	"go-web-mini/vo"
-	"strings"
-	"time"
 )
 
 type IUserRepository interface {
@@ -78,7 +79,7 @@ func (ur UserRepository) Login(user *model.User) (*model.User, error) {
 	}
 
 	// 校验密码
-	err = util.ComparePasswd(firstUser.Password, user.Password)
+	err = pkg_util.ComparePasswd(firstUser.Password, user.Password)
 	if err != nil {
 		return &firstUser, errors.New("密码错误")
 	}
@@ -303,7 +304,7 @@ func (ur UserRepository) UpdateUserInfoCacheByRoleId(roleId uint) error {
 	return err
 }
 
-//清理所有用户信息缓存
+// 清理所有用户信息缓存
 func (ur UserRepository) ClearUserInfoCache() {
 	userInfoCache.Flush()
 }

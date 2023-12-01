@@ -3,9 +3,9 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"go-web-mini/app/admin/model"
+	"go-web-mini/app/admin/vo"
 	"go-web-mini/common"
-	"go-web-mini/model"
-	"go-web-mini/vo"
 	"strings"
 )
 
@@ -62,7 +62,7 @@ func (r RoleRepository) GetRoles(req *vo.RoleListRequest) ([]model.Role, int64, 
 	return list, total, err
 }
 
-//根据角色ID获取角色
+// 根据角色ID获取角色
 func (r RoleRepository) GetRolesByIds(roleIds []uint) ([]*model.Role, error) {
 	var list []*model.Role
 	err := common.DB.Where("id IN (?)", roleIds).Find(&list).Error
