@@ -30,7 +30,10 @@ func NewApiController() IApiController {
 	return apiController
 }
 
-// 获取接口列表
+// @Title 获取接口列表
+// @Description 获取接口列表
+// @Param        id   path      int  true  "Account ID"
+// @router / [GET]
 func (ac ApiController) GetApis(c *gin.Context) {
 	var req vo.ApiListRequest
 	// 参数绑定
@@ -55,7 +58,10 @@ func (ac ApiController) GetApis(c *gin.Context) {
 	}, "获取接口列表成功")
 }
 
-// 获取接口树(按接口Category字段分类)
+// @Title 获取接口树
+// @Description 获取接口树(按接口Category字段分类)
+// @Param        id   path      int  true  "Account ID"
+// @router /tree [GET]
 func (ac ApiController) GetApiTree(c *gin.Context) {
 	tree, err := ac.ApiDao.GetApiTree()
 	if err != nil {

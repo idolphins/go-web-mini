@@ -81,8 +81,8 @@ func login(c *gin.Context) (interface{}, error) {
 	}
 
 	// 密码校验
-	UserDao := dao.NewUserDao()
-	user, err := UserDao.Login(u)
+	userDao := dao.NewUserDao()
+	user, err := userDao.Login(u)
 	if err != nil {
 		return nil, err
 	}

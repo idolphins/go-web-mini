@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"osstp-go-hive/app/admin/middleware"
 	"osstp-go-hive/config"
+	_ "osstp-go-hive/docs"
 	"osstp-go-hive/global"
 	"osstp-go-hive/routes/admin"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // 初始化
@@ -34,6 +37,9 @@ func InitRoutes() *gin.Engine {
 
 	// 启用操作日志中间件
 	r.Use(middleware.OperationLogMiddleware())
+
+	//http://localhost:8088/swagger/index.html
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// 初始化JWT认证中间件
 	authMiddleware, err := middleware.InitAuth()
