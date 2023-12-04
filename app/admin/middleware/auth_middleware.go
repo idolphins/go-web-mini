@@ -18,20 +18,20 @@ import (
 // 初始化jwt中间件
 func InitAuth() (*jwt.GinJWTMiddleware, error) {
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
-		Realm:           config.Conf.Jwt.Realm,                                 // jwt标识
-		Key:             []byte(config.Conf.Jwt.Key),                           // 服务端密钥
-		Timeout:         time.Hour * time.Duration(config.Conf.Jwt.Timeout),    // token过期时间
-		MaxRefresh:      time.Hour * time.Duration(config.Conf.Jwt.MaxRefresh), // token最大刷新时间(RefreshToken过期时间=Timeout+MaxRefresh)
-		PayloadFunc:     payloadFunc,                                           // 有效载荷处理
-		IdentityHandler: identityHandler,                                       // 解析Claims
-		Authenticator:   login,                                                 // 校验token的正确性, 处理登录逻辑
-		Authorizator:    authorizator,                                          // 用户登录校验成功处理
-		Unauthorized:    unauthorized,                                          // 用户登录校验失败处理
-		LoginResponse:   loginResponse,                                         // 登录成功后的响应
-		LogoutResponse:  logoutResponse,                                        // 登出后的响应
-		RefreshResponse: refreshResponse,                                       // 刷新token后的响应
-		TokenLookup:     "header: Authorization, query: token, cookie: jwt",    // 自动在这几个地方寻找请求中的token
-		TokenHeadName:   "Bearer",                                              // header名称
+		Realm:           config.Config.Jwt.Realm,                                 // jwt标识
+		Key:             []byte(config.Config.Jwt.Key),                           // 服务端密钥
+		Timeout:         time.Hour * time.Duration(config.Config.Jwt.Timeout),    // token过期时间
+		MaxRefresh:      time.Hour * time.Duration(config.Config.Jwt.MaxRefresh), // token最大刷新时间(RefreshToken过期时间=Timeout+MaxRefresh)
+		PayloadFunc:     payloadFunc,                                             // 有效载荷处理
+		IdentityHandler: identityHandler,                                         // 解析Claims
+		Authenticator:   login,                                                   // 校验token的正确性, 处理登录逻辑
+		Authorizator:    authorizator,                                            // 用户登录校验成功处理
+		Unauthorized:    unauthorized,                                            // 用户登录校验失败处理
+		LoginResponse:   loginResponse,                                           // 登录成功后的响应
+		LogoutResponse:  logoutResponse,                                          // 登出后的响应
+		RefreshResponse: refreshResponse,                                         // 刷新token后的响应
+		TokenLookup:     "header: Authorization, query: token, cookie: jwt",      // 自动在这几个地方寻找请求中的token
+		TokenHeadName:   "Bearer",                                                // header名称
 		TimeFunc:        time.Now,
 	})
 	return authMiddleware, err
@@ -70,7 +70,7 @@ func login(c *gin.Context) (interface{}, error) {
 	}
 
 	// 密码通过RSA解密
-	decodeData, err := pkg_util.RSADecrypt([]byte(req.Password), config.Conf.System.RSAPrivateBytes)
+	decodeData, err := pkg_util.RSADecrypt([]byte(req.Password), config.Config.System.RSAPrivateBytes)
 	if err != nil {
 		return nil, err
 	}

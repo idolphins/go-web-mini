@@ -48,8 +48,8 @@ func main() {
 	// 注册所有路由
 	r := routes.InitRoutes()
 
-	host := config.Conf.System.Host
-	port := config.Conf.System.Port
+	host := config.Config.System.Host
+	port := config.Config.System.Port
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", host, port),
@@ -64,7 +64,7 @@ func main() {
 		}
 	}()
 
-	global.ZLog.Info(fmt.Sprintf("Server is running at %s:%d/%s", host, port, config.Conf.System.UrlPathPrefix))
+	global.ZLog.Info(fmt.Sprintf("Server is running at %s:%d/%s", host, port, config.Config.System.UrlPathPrefix))
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.

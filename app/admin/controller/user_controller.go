@@ -92,12 +92,12 @@ func (uc UserController) ChangePwd(c *gin.Context) {
 
 	// 前端传来的密码是rsa加密的,先解密
 	// 密码通过RSA解密
-	decodeOldPassword, err := pkg_util.RSADecrypt([]byte(req.OldPassword), config.Conf.System.RSAPrivateBytes)
+	decodeOldPassword, err := pkg_util.RSADecrypt([]byte(req.OldPassword), config.Config.System.RSAPrivateBytes)
 	if err != nil {
 		pkg_response.Fail(c, nil, err.Error())
 		return
 	}
-	decodeNewPassword, err := pkg_util.RSADecrypt([]byte(req.NewPassword), config.Conf.System.RSAPrivateBytes)
+	decodeNewPassword, err := pkg_util.RSADecrypt([]byte(req.NewPassword), config.Config.System.RSAPrivateBytes)
 	if err != nil {
 		pkg_response.Fail(c, nil, err.Error())
 		return
@@ -153,7 +153,7 @@ func (uc UserController) CreateUser(c *gin.Context) {
 	// 密码通过RSA解密
 	// 密码不为空就解密
 	if req.Password != "" {
-		decodeData, err := pkg_util.RSADecrypt([]byte(req.Password), config.Conf.System.RSAPrivateBytes)
+		decodeData, err := pkg_util.RSADecrypt([]byte(req.Password), config.Config.System.RSAPrivateBytes)
 		if err != nil {
 			pkg_response.Fail(c, nil, err.Error())
 			return
@@ -357,7 +357,7 @@ func (uc UserController) UpdateUserById(c *gin.Context) {
 		// 密码赋值
 		if req.Password != "" {
 			// 密码通过RSA解密
-			decodeData, err := pkg_util.RSADecrypt([]byte(req.Password), config.Conf.System.RSAPrivateBytes)
+			decodeData, err := pkg_util.RSADecrypt([]byte(req.Password), config.Config.System.RSAPrivateBytes)
 			if err != nil {
 				pkg_response.Fail(c, nil, err.Error())
 				return

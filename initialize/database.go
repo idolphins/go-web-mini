@@ -16,25 +16,25 @@ var (
 // 初始化mysql数据库
 func InitMysql() *gorm.DB {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&collation=%s&%s",
-		config.Conf.Mysql.Username,
-		config.Conf.Mysql.Password,
-		config.Conf.Mysql.Host,
-		config.Conf.Mysql.Port,
-		config.Conf.Mysql.Database,
-		config.Conf.Mysql.Charset,
-		config.Conf.Mysql.Collation,
-		config.Conf.Mysql.Query,
+		config.Config.Mysql.Username,
+		config.Config.Mysql.Password,
+		config.Config.Mysql.Host,
+		config.Config.Mysql.Port,
+		config.Config.Mysql.Database,
+		config.Config.Mysql.Charset,
+		config.Config.Mysql.Collation,
+		config.Config.Mysql.Query,
 	)
 	// 隐藏密码
 	showDsn := fmt.Sprintf(
 		"%s:******@tcp(%s:%d)/%s?charset=%s&collation=%s&%s",
-		config.Conf.Mysql.Username,
-		config.Conf.Mysql.Host,
-		config.Conf.Mysql.Port,
-		config.Conf.Mysql.Database,
-		config.Conf.Mysql.Charset,
-		config.Conf.Mysql.Collation,
-		config.Conf.Mysql.Query,
+		config.Config.Mysql.Username,
+		config.Config.Mysql.Host,
+		config.Config.Mysql.Port,
+		config.Config.Mysql.Database,
+		config.Config.Mysql.Charset,
+		config.Config.Mysql.Collation,
+		config.Config.Mysql.Query,
 	)
 	//Log.Info("数据库连接DSN: ", showDsn)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
@@ -42,7 +42,7 @@ func InitMysql() *gorm.DB {
 		DisableForeignKeyConstraintWhenMigrating: true,
 		//// 指定表前缀
 		//NamingStrategy: schema.NamingStrategy{
-		//	TablePrefix: config.Conf.Mysql.TablePrefix + "_",
+		//	TablePrefix: config.Config.Mysql.TablePrefix + "_",
 		//},
 	})
 	if err != nil {
@@ -51,7 +51,7 @@ func InitMysql() *gorm.DB {
 	}
 
 	// 开启mysql日志
-	if config.Conf.Mysql.LogMode {
+	if config.Config.Mysql.LogMode {
 		db.Debug()
 	}
 	// 全局DB赋值

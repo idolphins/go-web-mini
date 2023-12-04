@@ -13,7 +13,7 @@ import (
 // 初始化mysql数据
 func InitData() {
 	// 是否初始化数据
-	if !config.Conf.System.InitData {
+	if !config.Config.System.InitData {
 		return
 	}
 

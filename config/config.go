@@ -15,7 +15,7 @@ import (
 // viper内置了mapstructure, yaml文件用"-"区分单词, 转为驼峰方便
 
 // 全局配置变量
-var Conf = new(config)
+var Config = new(config)
 
 type config struct {
 	System    *SystemConfig    `mapstructure:"system" json:"system"`
@@ -35,7 +35,7 @@ func InitConfig() {
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(workDir + "/")
+	viper.AddConfigPath(workDir + "/config/")
 	// 读取配置信息
 	err = viper.ReadInConfig()
 
@@ -43,24 +43,24 @@ func InitConfig() {
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		// 将读取的配置信息保存至全局变量Conf
-		if err := viper.Unmarshal(Conf); err != nil {
+		if err := viper.Unmarshal(Config); err != nil {
 			panic(fmt.Errorf("初始化配置文件失败:%s \n", err))
 		}
 		// 读取rsa key
-		Conf.System.RSAPublicBytes = pkg_util.RSAReadKeyFromFile(Conf.System.RSAPublicKey)
-		Conf.System.RSAPrivateBytes = pkg_util.RSAReadKeyFromFile(Conf.System.RSAPrivateKey)
+		Config.System.RSAPublicBytes = pkg_util.RSAReadKeyFromFile(Config.System.RSAPublicKey)
+		Config.System.RSAPrivateBytes = pkg_util.RSAReadKeyFromFile(Config.System.RSAPrivateKey)
 	})
 
 	if err != nil {
 		panic(fmt.Errorf("读取配置文件失败:%s \n", err))
 	}
 	// 将读取的配置信息保存至全局变量Conf
-	if err := viper.Unmarshal(Conf); err != nil {
+	if err := viper.Unmarshal(Config); err != nil {
 		panic(fmt.Errorf("初始化配置文件失败:%s \n", err))
 	}
 	// 读取rsa key
-	Conf.System.RSAPublicBytes = pkg_util.RSAReadKeyFromFile(Conf.System.RSAPublicKey)
-	Conf.System.RSAPrivateBytes = pkg_util.RSAReadKeyFromFile(Conf.System.RSAPrivateKey)
+	Config.System.RSAPublicBytes = pkg_util.RSAReadKeyFromFile(Config.System.RSAPublicKey)
+	Config.System.RSAPrivateBytes = pkg_util.RSAReadKeyFromFile(Config.System.RSAPrivateKey)
 
 }
 

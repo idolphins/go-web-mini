@@ -31,7 +31,7 @@ func mysqlCasbin() (*casbin.Enforcer, error) {
 	if err != nil {
 		return nil, err
 	}
-	e, err := casbin.NewEnforcer(config.Conf.Casbin.ModelPath, a)
+	e, err := casbin.NewEnforcer(config.Config.Casbin.ModelPath, a)
 	if err != nil {
 		return nil, err
 	}
