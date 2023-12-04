@@ -1,10 +1,10 @@
-package common
+package initialize
 
 import (
 	"errors"
-	"go-web-mini/app/admin/model"
-	"go-web-mini/config"
-	pkg_util "go-web-mini/pkg/util"
+	"osstp-go-hive/app/admin/model"
+	"osstp-go-hive/config"
+	pkg_util "osstp-go-hive/pkg/util"
 
 	"github.com/thoas/go-funk"
 	"gorm.io/gorm"
@@ -50,16 +50,16 @@ func InitData() {
 	}
 
 	for _, role := range roles {
-		err := DB.First(&role, role.ID).Error
+		err := _DB.First(&role, role.ID).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			newRoles = append(newRoles, role)
 		}
 	}
 
 	if len(newRoles) > 0 {
-		err := DB.Create(&newRoles).Error
+		err := _DB.Create(&newRoles).Error
 		if err != nil {
-			Log.Errorf("写入系统角色数据失败：%v", err)
+			_Log.Errorf("写入系统角色数据失败：%v", err)
 		}
 	}
 
@@ -166,15 +166,15 @@ func InitData() {
 		},
 	}
 	for _, menu := range menus {
-		err := DB.First(&menu, menu.ID).Error
+		err := _DB.First(&menu, menu.ID).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			newMenus = append(newMenus, menu)
 		}
 	}
 	if len(newMenus) > 0 {
-		err := DB.Create(&newMenus).Error
+		err := _DB.Create(&newMenus).Error
 		if err != nil {
-			Log.Errorf("写入系统菜单数据失败：%v", err)
+			_Log.Errorf("写入系统菜单数据失败：%v", err)
 		}
 	}
 
@@ -184,7 +184,7 @@ func InitData() {
 		{
 			Model:        gorm.Model{ID: 1},
 			Username:     "admin",
-			Password:     pkg_util.GenPasswd("123456"),
+			Password:     password(),
 			Mobile:       "18888888888",
 			Avatar:       "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
 			Nickname:     new(string),
@@ -196,7 +196,7 @@ func InitData() {
 		{
 			Model:        gorm.Model{ID: 2},
 			Username:     "faker",
-			Password:     pkg_util.GenPasswd("123456"),
+			Password:     password(),
 			Mobile:       "19999999999",
 			Avatar:       "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
 			Nickname:     new(string),
@@ -208,7 +208,7 @@ func InitData() {
 		{
 			Model:        gorm.Model{ID: 3},
 			Username:     "nike",
-			Password:     pkg_util.GenPasswd("123456"),
+			Password:     password(),
 			Mobile:       "13333333333",
 			Avatar:       "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
 			Nickname:     new(string),
@@ -220,7 +220,7 @@ func InitData() {
 		{
 			Model:        gorm.Model{ID: 4},
 			Username:     "bob",
-			Password:     pkg_util.GenPasswd("123456"),
+			Password:     password(),
 			Mobile:       "15555555555",
 			Avatar:       "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
 			Nickname:     new(string),
@@ -232,16 +232,16 @@ func InitData() {
 	}
 
 	for _, user := range users {
-		err := DB.First(&user, user.ID).Error
+		err := _DB.First(&user, user.ID).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			newUsers = append(newUsers, user)
 		}
 	}
 
 	if len(newUsers) > 0 {
-		err := DB.Create(&newUsers).Error
+		err := _DB.Create(&newUsers).Error
 		if err != nil {
-			Log.Errorf("写入用户数据失败：%v", err)
+			_Log.Errorf("写入用户数据失败：%v", err)
 		}
 	}
 
@@ -469,7 +469,7 @@ func InitData() {
 	newRoleCasbin := make([]model.RoleCasbin, 0)
 	for i, api := range apis {
 		api.ID = uint(i + 1)
-		err := DB.First(&api, api.ID).Error
+		err := _DB.First(&api, api.ID).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			newApi = append(newApi, api)
 
@@ -505,8 +505,8 @@ func InitData() {
 	}
 
 	if len(newApi) > 0 {
-		if err := DB.Create(&newApi).Error; err != nil {
-			Log.Errorf("写入api数据失败：%v", err)
+		if err := _DB.Create(&newApi).Error; err != nil {
+			_Log.Errorf("写入api数据失败：%v", err)
 		}
 	}
 
@@ -517,9 +517,14 @@ func InitData() {
 				c.Keyword, c.Path, c.Method,
 			})
 		}
-		isAdd, err := CasbinEnforcer.AddPolicies(rules)
+		isAdd, err := _CasbinEnforcer.AddPolicies(rules)
 		if !isAdd {
-			Log.Errorf("写入casbin数据失败：%v", err)
+			_Log.Errorf("写入casbin数据失败：%v", err)
 		}
 	}
+}
+
+func password() string {
+	genPass, _ := pkg_util.GenPasswd("123456")
+	return genPass
 }

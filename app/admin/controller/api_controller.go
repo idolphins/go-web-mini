@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"go-web-mini/app/admin/model"
-	"go-web-mini/app/admin/repository"
-	"go-web-mini/app/admin/vo"
-	"go-web-mini/common"
-	pkg_response "go-web-mini/pkg/response"
+	"osstp-go-hive/app/admin/dao"
+	"osstp-go-hive/app/admin/model"
+	"osstp-go-hive/app/admin/vo"
+	"osstp-go-hive/global"
+	pkg_response "osstp-go-hive/pkg/response"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -21,12 +21,12 @@ type IApiController interface {
 }
 
 type ApiController struct {
-	ApiRepository repository.IApiRepository
+	ApiDao dao.IApiDao
 }
 
 func NewApiController() IApiController {
-	apiRepository := repository.NewApiRepository()
-	apiController := ApiController{ApiRepository: apiRepository}
+	ApiDao := dao.NewApiDao()
+	apiController := ApiController{ApiDao: ApiDao}
 	return apiController
 }
 
@@ -39,13 +39,13 @@ func (ac ApiController) GetApis(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 	// 获取
-	apis, total, err := ac.ApiRepository.GetApis(&req)
+	apis, total, err := ac.ApiDao.GetApis(&req)
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取接口列表失败")
 		return
@@ -57,7 +57,7 @@ func (ac ApiController) GetApis(c *gin.Context) {
 
 // 获取接口树(按接口Category字段分类)
 func (ac ApiController) GetApiTree(c *gin.Context) {
-	tree, err := ac.ApiRepository.GetApiTree()
+	tree, err := ac.ApiDao.GetApiTree()
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取接口树失败")
 		return
@@ -76,14 +76,14 @@ func (ac ApiController) CreateApi(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
 	// 获取当前用户
-	ur := repository.NewUserRepository()
+	ur := dao.NewUserDao()
 	ctxUser, err := ur.GetCurrentUser(c)
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取当前用户信息失败")
@@ -99,7 +99,7 @@ func (ac ApiController) CreateApi(c *gin.Context) {
 	}
 
 	// 创建接口
-	err = ac.ApiRepository.CreateApi(&api)
+	err = ac.ApiDao.CreateApi(&api)
 	if err != nil {
 		pkg_response.Fail(c, nil, "创建接口失败: "+err.Error())
 		return
@@ -118,8 +118,8 @@ func (ac ApiController) UpdateApiById(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
@@ -132,7 +132,7 @@ func (ac ApiController) UpdateApiById(c *gin.Context) {
 	}
 
 	// 获取当前用户
-	ur := repository.NewUserRepository()
+	ur := dao.NewUserDao()
 	ctxUser, err := ur.GetCurrentUser(c)
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取当前用户信息失败")
@@ -147,7 +147,7 @@ func (ac ApiController) UpdateApiById(c *gin.Context) {
 		Creator:  ctxUser.Username,
 	}
 
-	err = ac.ApiRepository.UpdateApiById(uint(apiId), &api)
+	err = ac.ApiDao.UpdateApiById(uint(apiId), &api)
 	if err != nil {
 		pkg_response.Fail(c, nil, "更新接口失败: "+err.Error())
 		return
@@ -165,14 +165,14 @@ func (ac ApiController) BatchDeleteApiByIds(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
 	// 删除接口
-	err := ac.ApiRepository.BatchDeleteApiByIds(req.ApiIds)
+	err := ac.ApiDao.BatchDeleteApiByIds(req.ApiIds)
 	if err != nil {
 		pkg_response.Fail(c, nil, "删除接口失败: "+err.Error())
 		return

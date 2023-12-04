@@ -1,19 +1,20 @@
-package common
+package initialize
 
 import (
 	"fmt"
-	"go-web-mini/app/admin/model"
-	"go-web-mini/config"
+	"osstp-go-hive/app/admin/model"
+	"osstp-go-hive/config"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-// 全局mysql数据库变量
-var DB *gorm.DB
+var (
+	_DB *gorm.DB
+)
 
 // 初始化mysql数据库
-func InitMysql() {
+func InitMysql() *gorm.DB {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&collation=%s&%s",
 		config.Conf.Mysql.Username,
 		config.Conf.Mysql.Password,
@@ -45,7 +46,7 @@ func InitMysql() {
 		//},
 	})
 	if err != nil {
-		Log.Panicf("初始化mysql数据库异常: %v", err)
+		_Log.Panicf("初始化mysql数据库异常: %v", err)
 		panic(fmt.Errorf("初始化mysql数据库异常: %v", err))
 	}
 
@@ -54,15 +55,17 @@ func InitMysql() {
 		db.Debug()
 	}
 	// 全局DB赋值
-	DB = db
+	_DB = db
 	// 自动迁移表结构
 	dbAutoMigrate()
-	Log.Infof("初始化mysql数据库完成! dsn: %s", showDsn)
+	_Log.Infof("初始化mysql数据库完成! dsn: %s", showDsn)
+
+	return db
 }
 
 // 自动迁移表结构
 func dbAutoMigrate() {
-	DB.AutoMigrate(
+	_DB.AutoMigrate(
 		&model.User{},
 		&model.Role{},
 		&model.Menu{},

@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"go-web-mini/app/admin/repository"
-	"go-web-mini/common"
-	"go-web-mini/config"
-	pkg_response "go-web-mini/pkg/response"
+	"osstp-go-hive/app/admin/dao"
+	"osstp-go-hive/config"
+	"osstp-go-hive/global"
+	pkg_response "osstp-go-hive/pkg/response"
 
 	"github.com/gin-gonic/gin"
 
@@ -18,15 +18,15 @@ var checkLock sync.Mutex
 func CasbinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := pkg_response.Ctx{Context: c}
-		ur := repository.NewUserRepository()
+		ur := dao.NewUserDao()
 		user, err := ur.GetCurrentUser(c)
 		if err != nil {
-			ctx.Response(401, 401, nil, pkg_response.ResponseMessage{Msg: "用户未登录"})
+			ctx.Response(401, nil, pkg_response.ResponseMessage{Msg: "用户未登录"})
 			c.Abort()
 			return
 		}
 		if user.Status != 1 {
-			ctx.Response(401, 401, nil, pkg_response.ResponseMessage{Msg: "当前用户已被禁用"})
+			ctx.Response(401, nil, pkg_response.ResponseMessage{Msg: "当前用户已被禁用"})
 
 			c.Abort()
 			return
@@ -48,7 +48,7 @@ func CasbinMiddleware() gin.HandlerFunc {
 
 		isPass := check(subs, obj, act)
 		if !isPass {
-			ctx.Response(401, 401, nil, pkg_response.ResponseMessage{Msg: "没有权限"})
+			ctx.Response(401, nil, pkg_response.ResponseMessage{Msg: "没有权限"})
 
 			c.Abort()
 			return
@@ -64,7 +64,7 @@ func check(subs []string, obj string, act string) bool {
 	defer checkLock.Unlock()
 	isPass := false
 	for _, sub := range subs {
-		pass, _ := common.CasbinEnforcer.Enforce(sub, obj, act)
+		pass, _ := global.CasbinEnforcer.Enforce(sub, obj, act)
 		if pass {
 			isPass = true
 			break

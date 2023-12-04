@@ -1,12 +1,12 @@
-package repository
+package dao
 
 import (
 	"errors"
 	"fmt"
-	"go-web-mini/app/admin/model"
-	"go-web-mini/app/admin/vo"
-	"go-web-mini/common"
-	pkg_util "go-web-mini/pkg/util"
+	"osstp-go-hive/app/admin/model"
+	"osstp-go-hive/app/admin/vo"
+	"osstp-go-hive/global"
+	pkg_util "osstp-go-hive/pkg/util"
 	"strings"
 	"time"
 
@@ -15,7 +15,7 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-type IUserRepository interface {
+type IUserDao interface {
 	Login(user *model.User) (*model.User, error)       // 登录
 	ChangePwd(username string, newPasswd string) error // 更新密码
 
@@ -34,22 +34,22 @@ type IUserRepository interface {
 	ClearUserInfoCache()                               // 清理所有用户信息缓存
 }
 
-type UserRepository struct {
+type UserDao struct {
 }
 
 // 当前用户信息缓存，避免频繁获取数据库
 var userInfoCache = cache.New(24*time.Hour, 48*time.Hour)
 
-// UserRepository构造函数
-func NewUserRepository() IUserRepository {
-	return UserRepository{}
+// UserDao构造函数
+func NewUserDao() IUserDao {
+	return UserDao{}
 }
 
 // 登录
-func (ur UserRepository) Login(user *model.User) (*model.User, error) {
+func (ur UserDao) Login(user *model.User) (*model.User, error) {
 	// 根据用户名获取用户(正常状态:用户状态正常)
 	var firstUser model.User
-	err := common.DB.
+	err := global.DB.
 		Where("username = ?", user.Username).
 		Preload("Roles").
 		First(&firstUser).Error
@@ -77,6 +77,7 @@ func (ur UserRepository) Login(user *model.User) (*model.User, error) {
 	if !isValidate {
 		return nil, errors.New("用户角色被禁用")
 	}
+	fmt.Println(user.Password)
 
 	// 校验密码
 	err = pkg_util.ComparePasswd(firstUser.Password, user.Password)
@@ -88,7 +89,7 @@ func (ur UserRepository) Login(user *model.User) (*model.User, error) {
 
 // 获取当前登录用户信息
 // 需要缓存，减少数据库访问
-func (ur UserRepository) GetCurrentUser(c *gin.Context) (model.User, error) {
+func (ur UserDao) GetCurrentUser(c *gin.Context) (model.User, error) {
 	var newUser model.User
 	ctxUser, exist := c.Get("user")
 	if !exist {
@@ -117,7 +118,7 @@ func (ur UserRepository) GetCurrentUser(c *gin.Context) (model.User, error) {
 }
 
 // 获取当前用户角色排序最小值（最高等级角色）以及当前用户信息
-func (ur UserRepository) GetCurrentUserMinRoleSort(c *gin.Context) (uint, model.User, error) {
+func (ur UserDao) GetCurrentUserMinRoleSort(c *gin.Context) (uint, model.User, error) {
 	// 获取当前用户
 	ctxUser, err := ur.GetCurrentUser(c)
 	if err != nil {
@@ -137,17 +138,17 @@ func (ur UserRepository) GetCurrentUserMinRoleSort(c *gin.Context) (uint, model.
 }
 
 // 获取单个用户
-func (ur UserRepository) GetUserById(id uint) (model.User, error) {
+func (ur UserDao) GetUserById(id uint) (model.User, error) {
 	fmt.Println("GetUserById---")
 	var user model.User
-	err := common.DB.Where("id = ?", id).Preload("Roles").First(&user).Error
+	err := global.DB.Where("id = ?", id).Preload("Roles").First(&user).Error
 	return user, err
 }
 
 // 获取用户列表
-func (ur UserRepository) GetUsers(req *vo.UserListRequest) ([]*model.User, int64, error) {
+func (ur UserDao) GetUsers(req *vo.UserListRequest) ([]*model.User, int64, error) {
 	var list []*model.User
-	db := common.DB.Model(&model.User{}).Order("created_at DESC")
+	db := global.DB.Model(&model.User{}).Order("created_at DESC")
 
 	username := strings.TrimSpace(req.Username)
 	if username != "" {
@@ -183,8 +184,8 @@ func (ur UserRepository) GetUsers(req *vo.UserListRequest) ([]*model.User, int64
 }
 
 // 更新密码
-func (ur UserRepository) ChangePwd(username string, hashNewPasswd string) error {
-	err := common.DB.Model(&model.User{}).Where("username = ?", username).Update("password", hashNewPasswd).Error
+func (ur UserDao) ChangePwd(username string, hashNewPasswd string) error {
+	err := global.DB.Model(&model.User{}).Where("username = ?", username).Update("password", hashNewPasswd).Error
 	// 如果更新密码成功，则更新当前用户信息缓存
 	// 先获取缓存
 	cacheUser, found := userInfoCache.Get(username)
@@ -196,7 +197,7 @@ func (ur UserRepository) ChangePwd(username string, hashNewPasswd string) error 
 		} else {
 			// 没有缓存就获取用户信息缓存
 			var user model.User
-			common.DB.Where("username = ?", username).First(&user)
+			global.DB.Where("username = ?", username).First(&user)
 			userInfoCache.Set(username, user, cache.DefaultExpiration)
 		}
 	}
@@ -205,20 +206,20 @@ func (ur UserRepository) ChangePwd(username string, hashNewPasswd string) error 
 }
 
 // 创建用户
-func (ur UserRepository) CreateUser(user *model.User) error {
-	err := common.DB.Create(user).Error
+func (ur UserDao) CreateUser(user *model.User) error {
+	err := global.DB.Create(user).Error
 	return err
 }
 
 // 更新用户
-func (ur UserRepository) UpdateUser(user *model.User) error {
-	err := common.DB.Model(user).Updates(user).Error
+func (ur UserDao) UpdateUser(user *model.User) error {
+	err := global.DB.Model(user).Updates(user).Error
 	if err != nil {
 		return err
 	}
-	err = common.DB.Model(user).Association("Roles").Replace(user.Roles)
+	err = global.DB.Model(user).Association("Roles").Replace(user.Roles)
 
-	//err := common.DB.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&user).Error
+	//err := global.DB.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&user).Error
 
 	// 如果更新成功就更新用户信息缓存
 	if err == nil {
@@ -228,7 +229,7 @@ func (ur UserRepository) UpdateUser(user *model.User) error {
 }
 
 // 批量删除
-func (ur UserRepository) BatchDeleteUserByIds(ids []uint) error {
+func (ur UserDao) BatchDeleteUserByIds(ids []uint) error {
 	// 用户和角色存在多对多关联关系
 	var users []model.User
 	for _, id := range ids {
@@ -240,7 +241,7 @@ func (ur UserRepository) BatchDeleteUserByIds(ids []uint) error {
 		users = append(users, user)
 	}
 
-	err := common.DB.Select("Roles").Unscoped().Delete(&users).Error
+	err := global.DB.Select("Roles").Unscoped().Delete(&users).Error
 	// 删除用户成功，则删除用户信息缓存
 	if err == nil {
 		for _, user := range users {
@@ -251,10 +252,10 @@ func (ur UserRepository) BatchDeleteUserByIds(ids []uint) error {
 }
 
 // 根据用户ID获取用户角色排序最小值
-func (ur UserRepository) GetUserMinRoleSortsByIds(ids []uint) ([]int, error) {
+func (ur UserDao) GetUserMinRoleSortsByIds(ids []uint) ([]int, error) {
 	// 根据用户ID获取用户信息
 	var userList []model.User
-	err := common.DB.Where("id IN (?)", ids).Preload("Roles").Find(&userList).Error
+	err := global.DB.Where("id IN (?)", ids).Preload("Roles").Find(&userList).Error
 	if err != nil {
 		return []int{}, err
 	}
@@ -275,15 +276,15 @@ func (ur UserRepository) GetUserMinRoleSortsByIds(ids []uint) ([]int, error) {
 }
 
 // 设置用户信息缓存
-func (ur UserRepository) SetUserInfoCache(username string, user model.User) {
+func (ur UserDao) SetUserInfoCache(username string, user model.User) {
 	userInfoCache.Set(username, user, cache.DefaultExpiration)
 }
 
 // 根据角色ID更新拥有该角色的用户信息缓存
-func (ur UserRepository) UpdateUserInfoCacheByRoleId(roleId uint) error {
+func (ur UserDao) UpdateUserInfoCacheByRoleId(roleId uint) error {
 
 	var role model.Role
-	err := common.DB.Where("id = ?", roleId).Preload("Users").First(&role).Error
+	err := global.DB.Where("id = ?", roleId).Preload("Users").First(&role).Error
 	if err != nil {
 		return errors.New("根据角色ID角色信息失败")
 	}
@@ -305,6 +306,6 @@ func (ur UserRepository) UpdateUserInfoCacheByRoleId(roleId uint) error {
 }
 
 // 清理所有用户信息缓存
-func (ur UserRepository) ClearUserInfoCache() {
+func (ur UserDao) ClearUserInfoCache() {
 	userInfoCache.Flush()
 }

@@ -1,29 +1,34 @@
-package common
+package initialize
 
 import (
+	"regexp"
+
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	ch_translations "github.com/go-playground/validator/v10/translations/zh"
-	"regexp"
 )
 
-// 全局Validate数据校验实列
-var Validate *validator.Validate
+var (
+	// 全局Validate数据校验实列
+	_Validate *validator.Validate
 
-// 全局翻译器
-var Trans ut.Translator
+	// 全局翻译器
+	_Trans ut.Translator
+)
 
 // 初始化Validator数据校验
-func InitValidate() {
+func InitValidate() (*validator.Validate, ut.Translator) {
 	chinese := zh.New()
 	uni := ut.New(chinese, chinese)
 	trans, _ := uni.GetTranslator("zh")
-	Trans = trans
-	Validate = validator.New()
-	_ = ch_translations.RegisterDefaultTranslations(Validate, Trans)
-	_ = Validate.RegisterValidation("checkMobile", checkMobile)
-	Log.Infof("初始化validator.v10数据校验器完成")
+	_Trans = trans
+	_Validate = validator.New()
+	_ = ch_translations.RegisterDefaultTranslations(_Validate, _Trans)
+	_ = _Validate.RegisterValidation("checkMobile", checkMobile)
+	_Log.Infof("初始化validator.v10数据校验器完成")
+
+	return _Validate, _Trans
 }
 
 func checkMobile(fl validator.FieldLevel) bool {

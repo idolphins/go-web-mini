@@ -1,12 +1,12 @@
-<h1 align="center">go-web-mini</h1>
+<h1 align="center">osstp-go-hive</h1>
 
 <div align="center">
-Go + Vue开发的管理系统脚手架, 前后端分离, 仅包含项目开发的必需部分, 基于角色的访问控制(RBAC), 分包合理, 精简易于扩展。 后端Go包含了gin、 gorm、 jwt和casbin等的使用, 前端Vue基于vue-element-admin开发: https://github.com/gnimli/go-web-mini-ui.git
+Go + Vue开发的管理系统脚手架, 前后端分离, 仅包含项目开发的必需部分, 基于角色的访问控制(RBAC), 分包合理, 精简易于扩展。 后端Go包含了gin、 gorm、 jwt和casbin等的使用, 前端Vue基于vue-element-admin开发: https://github.com/gnimli/osstp-go-hive-ui.git
 <p align="center">
-<img src="https://img.shields.io/github/go-mod/go-version/gnimli/go-web-mini" alt="Go version"/>
+<img src="https://img.shields.io/github/go-mod/go-version/gnimli/osstp-go-hive" alt="Go version"/>
 <img src="https://img.shields.io/badge/Gin-1.6.3-brightgreen" alt="Gin version"/>
 <img src="https://img.shields.io/badge/Gorm-1.20.12-brightgreen" alt="Gorm version"/>
-<img src="https://img.shields.io/github/license/gnimli/go-web-mini" alt="License"/>
+<img src="https://img.shields.io/github/license/gnimli/osstp-go-hive" alt="License"/>
 </p>
 </div>
 
@@ -32,23 +32,23 @@ Go + Vue开发的管理系统脚手架, 前后端分离, 仅包含项目开发�
 
 ## 项目截图
 
-![登录](https://github.com/gnimli/go-web-mini-ui/blob/main/src/assets/GithubImages/login.PNG)
-![用户管理](https://github.com/gnimli/go-web-mini-ui/blob/main/src/assets/GithubImages/user.PNG)
-![角色管理](https://github.com/gnimli/go-web-mini-ui/blob/main/src/assets/GithubImages/role.PNG)
-![角色权限](https://github.com/gnimli/go-web-mini-ui/blob/main/src/assets/GithubImages/rolePermission.PNG)
-![菜单管理](https://github.com/gnimli/go-web-mini-ui/blob/main/src/assets/GithubImages/menu.PNG)
-![API管理](https://github.com/gnimli/go-web-mini-ui/blob/main/src/assets/GithubImages/api.PNG)
+![登录](https://github.com/gnimli/osstp-go-hive-ui/blob/main/src/assets/GithubImages/login.PNG)
+![用户管理](https://github.com/gnimli/osstp-go-hive-ui/blob/main/src/assets/GithubImages/user.PNG)
+![角色管理](https://github.com/gnimli/osstp-go-hive-ui/blob/main/src/assets/GithubImages/role.PNG)
+![角色权限](https://github.com/gnimli/osstp-go-hive-ui/blob/main/src/assets/GithubImages/rolePermission.PNG)
+![菜单管理](https://github.com/gnimli/osstp-go-hive-ui/blob/main/src/assets/GithubImages/menu.PNG)
+![API管理](https://github.com/gnimli/osstp-go-hive-ui/blob/main/src/assets/GithubImages/api.PNG)
 
 ## 项目结构概览
 
 ```
-├─common # casbin mysql zap validator 等公共资源
+├─initialize # casbin mysql zap validator 等公共资源
 ├─config # viper读取配置
 ├─controller # controller层，响应路由请求的方法
 ├─dto # 返回给前端的数据结构
 ├─middleware # 中间件
 ├─model # 结构体模型
-├─repository # 数据库操作
+├─dao # 数据库操作
 ├─response # 常用返回封装，如Success、Fail
 ├─routes # 所有路由
 ├─util # 工具方法
@@ -56,8 +56,8 @@ Go + Vue开发的管理系统脚手架, 前后端分离, 仅包含项目开发�
 
 ```
 ## 前端Vue项目
-    go-web-mini-ui 
-<https://github.com/gnimli/go-web-mini-ui.git>
+    osstp-go-hive-ui 
+<https://github.com/gnimli/osstp-go-hive-ui.git>
 
 ## TODO
 

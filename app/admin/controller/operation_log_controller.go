@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"go-web-mini/app/admin/repository"
-	"go-web-mini/app/admin/vo"
-	"go-web-mini/common"
-	pkg_response "go-web-mini/pkg/response"
+	"osstp-go-hive/app/admin/dao"
+	"osstp-go-hive/app/admin/vo"
+	"osstp-go-hive/global"
+	pkg_response "osstp-go-hive/pkg/response"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -16,12 +16,12 @@ type IOperationLogController interface {
 }
 
 type OperationLogController struct {
-	operationLogRepository repository.IOperationLogRepository
+	OperationLogDao dao.IOperationLogDao
 }
 
 func NewOperationLogController() IOperationLogController {
-	operationLogRepository := repository.NewOperationLogRepository()
-	operationLogController := OperationLogController{operationLogRepository: operationLogRepository}
+	OperationLogDao := dao.NewOperationLogDao()
+	operationLogController := OperationLogController{OperationLogDao: OperationLogDao}
 	return operationLogController
 }
 
@@ -34,13 +34,13 @@ func (oc OperationLogController) GetOperationLogs(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 	// 获取
-	logs, total, err := oc.operationLogRepository.GetOperationLogs(&req)
+	logs, total, err := oc.OperationLogDao.GetOperationLogs(&req)
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取操作日志列表失败: "+err.Error())
 		return
@@ -57,14 +57,14 @@ func (oc OperationLogController) BatchDeleteOperationLogByIds(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
 	// 删除接口
-	err := oc.operationLogRepository.BatchDeleteOperationLogByIds(req.OperationLogIds)
+	err := oc.OperationLogDao.BatchDeleteOperationLogByIds(req.OperationLogIds)
 	if err != nil {
 		pkg_response.Fail(c, nil, "删除日志失败: "+err.Error())
 		return

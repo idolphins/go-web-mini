@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"go-web-mini/app/admin/model"
-	"go-web-mini/app/admin/repository"
-	"go-web-mini/config"
+	"osstp-go-hive/app/admin/dao"
+	"osstp-go-hive/app/admin/model"
+	"osstp-go-hive/config"
 	"strings"
 	"time"
 
@@ -45,8 +45,8 @@ func OperationLogMiddleware() gin.HandlerFunc {
 		method := c.Request.Method
 
 		// 获取接口描述
-		apiRepository := repository.NewApiRepository()
-		apiDesc, _ := apiRepository.GetApiDescByPath(path, method)
+		ApiDao := dao.NewApiDao()
+		apiDesc, _ := ApiDao.GetApiDescByPath(path, method)
 
 		operationLog := model.OperationLog{
 			Username:   username,

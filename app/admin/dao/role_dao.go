@@ -1,15 +1,15 @@
-package repository
+package dao
 
 import (
 	"errors"
 	"fmt"
-	"go-web-mini/app/admin/model"
-	"go-web-mini/app/admin/vo"
-	"go-web-mini/common"
+	"osstp-go-hive/app/admin/model"
+	"osstp-go-hive/app/admin/vo"
+	"osstp-go-hive/global"
 	"strings"
 )
 
-type IRoleRepository interface {
+type IRoleDao interface {
 	GetRoles(req *vo.RoleListRequest) ([]model.Role, int64, error)       // 获取角色列表
 	GetRolesByIds(roleIds []uint) ([]*model.Role, error)                 // 根据角色ID获取角色
 	CreateRole(role *model.Role) error                                   // 创建角色
@@ -21,17 +21,17 @@ type IRoleRepository interface {
 	BatchDeleteRoleByIds(roleIds []uint) error                           // 删除角色
 }
 
-type RoleRepository struct {
+type RoleDao struct {
 }
 
-func NewRoleRepository() IRoleRepository {
-	return RoleRepository{}
+func NewRoleDao() IRoleDao {
+	return RoleDao{}
 }
 
 // 获取角色列表
-func (r RoleRepository) GetRoles(req *vo.RoleListRequest) ([]model.Role, int64, error) {
+func (r RoleDao) GetRoles(req *vo.RoleListRequest) ([]model.Role, int64, error) {
 	var list []model.Role
-	db := common.DB.Model(&model.Role{}).Order("created_at DESC")
+	db := global.DB.Model(&model.Role{}).Order("created_at DESC")
 
 	name := strings.TrimSpace(req.Name)
 	if name != "" {
@@ -63,44 +63,44 @@ func (r RoleRepository) GetRoles(req *vo.RoleListRequest) ([]model.Role, int64, 
 }
 
 // 根据角色ID获取角色
-func (r RoleRepository) GetRolesByIds(roleIds []uint) ([]*model.Role, error) {
+func (r RoleDao) GetRolesByIds(roleIds []uint) ([]*model.Role, error) {
 	var list []*model.Role
-	err := common.DB.Where("id IN (?)", roleIds).Find(&list).Error
+	err := global.DB.Where("id IN (?)", roleIds).Find(&list).Error
 	return list, err
 }
 
 // 创建角色
-func (r RoleRepository) CreateRole(role *model.Role) error {
-	err := common.DB.Create(role).Error
+func (r RoleDao) CreateRole(role *model.Role) error {
+	err := global.DB.Create(role).Error
 	return err
 }
 
 // 更新角色
-func (r RoleRepository) UpdateRoleById(roleId uint, role *model.Role) error {
-	err := common.DB.Model(&model.Role{}).Where("id = ?", roleId).Updates(role).Error
+func (r RoleDao) UpdateRoleById(roleId uint, role *model.Role) error {
+	err := global.DB.Model(&model.Role{}).Where("id = ?", roleId).Updates(role).Error
 	return err
 }
 
 // 获取角色的权限菜单
-func (r RoleRepository) GetRoleMenusById(roleId uint) ([]*model.Menu, error) {
+func (r RoleDao) GetRoleMenusById(roleId uint) ([]*model.Menu, error) {
 	var role model.Role
-	err := common.DB.Where("id = ?", roleId).Preload("Menus").First(&role).Error
+	err := global.DB.Where("id = ?", roleId).Preload("Menus").First(&role).Error
 	return role.Menus, err
 }
 
 // 更新角色的权限菜单
-func (r RoleRepository) UpdateRoleMenus(role *model.Role) error {
-	err := common.DB.Model(role).Association("Menus").Replace(role.Menus)
+func (r RoleDao) UpdateRoleMenus(role *model.Role) error {
+	err := global.DB.Model(role).Association("Menus").Replace(role.Menus)
 	return err
 }
 
 // 根据角色关键字获取角色的权限接口
-func (r RoleRepository) GetRoleApisByRoleKeyword(roleKeyword string) ([]*model.Api, error) {
-	policies := common.CasbinEnforcer.GetFilteredPolicy(0, roleKeyword)
+func (r RoleDao) GetRoleApisByRoleKeyword(roleKeyword string) ([]*model.Api, error) {
+	policies := global.CasbinEnforcer.GetFilteredPolicy(0, roleKeyword)
 
 	// 获取所有接口
 	var apis []*model.Api
-	err := common.DB.Find(&apis).Error
+	err := global.DB.Find(&apis).Error
 	if err != nil {
 		return apis, errors.New("获取角色的权限接口失败")
 	}
@@ -123,24 +123,24 @@ func (r RoleRepository) GetRoleApisByRoleKeyword(roleKeyword string) ([]*model.A
 }
 
 // 更新角色的权限接口（先全部删除再新增）
-func (r RoleRepository) UpdateRoleApis(roleKeyword string, reqRolePolicies [][]string) error {
+func (r RoleDao) UpdateRoleApis(roleKeyword string, reqRolePolicies [][]string) error {
 	// 先获取path中的角色ID对应角色已有的police(需要先删除的)
-	err := common.CasbinEnforcer.LoadPolicy()
+	err := global.CasbinEnforcer.LoadPolicy()
 	if err != nil {
 		return errors.New("角色的权限接口策略加载失败")
 	}
-	rmPolicies := common.CasbinEnforcer.GetFilteredPolicy(0, roleKeyword)
+	rmPolicies := global.CasbinEnforcer.GetFilteredPolicy(0, roleKeyword)
 	if len(rmPolicies) > 0 {
-		isRemoved, _ := common.CasbinEnforcer.RemovePolicies(rmPolicies)
+		isRemoved, _ := global.CasbinEnforcer.RemovePolicies(rmPolicies)
 		if !isRemoved {
 			return errors.New("更新角色的权限接口失败")
 		}
 	}
-	isAdded, _ := common.CasbinEnforcer.AddPolicies(reqRolePolicies)
+	isAdded, _ := global.CasbinEnforcer.AddPolicies(reqRolePolicies)
 	if !isAdded {
 		return errors.New("更新角色的权限接口失败")
 	}
-	err = common.CasbinEnforcer.LoadPolicy()
+	err = global.CasbinEnforcer.LoadPolicy()
 	if err != nil {
 		return errors.New("更新角色的权限接口成功，角色的权限接口策略加载失败")
 	} else {
@@ -149,20 +149,20 @@ func (r RoleRepository) UpdateRoleApis(roleKeyword string, reqRolePolicies [][]s
 }
 
 // 删除角色
-func (r RoleRepository) BatchDeleteRoleByIds(roleIds []uint) error {
+func (r RoleDao) BatchDeleteRoleByIds(roleIds []uint) error {
 	var roles []*model.Role
-	err := common.DB.Where("id IN (?)", roleIds).Find(&roles).Error
+	err := global.DB.Where("id IN (?)", roleIds).Find(&roles).Error
 	if err != nil {
 		return err
 	}
-	err = common.DB.Select("Users", "Menus").Unscoped().Delete(&roles).Error
+	err = global.DB.Select("Users", "Menus").Unscoped().Delete(&roles).Error
 	// 删除成功就删除casbin policy
 	if err == nil {
 		for _, role := range roles {
 			roleKeyword := role.Keyword
-			rmPolicies := common.CasbinEnforcer.GetFilteredPolicy(0, roleKeyword)
+			rmPolicies := global.CasbinEnforcer.GetFilteredPolicy(0, roleKeyword)
 			if len(rmPolicies) > 0 {
-				isRemoved, _ := common.CasbinEnforcer.RemovePolicies(rmPolicies)
+				isRemoved, _ := global.CasbinEnforcer.RemovePolicies(rmPolicies)
 				if !isRemoved {
 					return errors.New("删除角色成功, 删除角色关联权限接口失败")
 				}

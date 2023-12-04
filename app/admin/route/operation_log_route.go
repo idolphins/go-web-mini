@@ -1,8 +1,8 @@
-package routes
+package route
 
 import (
-	"go-web-mini/app/admin/controller"
-	"go-web-mini/middleware"
+	"osstp-go-hive/app/admin/controller"
+	"osstp-go-hive/app/admin/middleware"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"

@@ -1,18 +1,19 @@
-package common
+package initialize
 
 import (
 	"fmt"
-	"go-web-mini/config"
+	"os"
+	"osstp-go-hive/config"
+	"time"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"os"
-	"time"
 )
 
-// 全局日志变量
-//var Log *zap.Logger
-var Log *zap.SugaredLogger
+var (
+	_Log *zap.SugaredLogger
+)
 
 /**
  * 初始化日志
@@ -25,7 +26,7 @@ var Log *zap.SugaredLogger
  * serviceName 服务名
  * 由于zap不具备日志切割功能, 这里使用lumberjack配合
  */
-func InitLogger() {
+func InitLogger() *zap.SugaredLogger {
 	now := time.Now()
 	infoLogFileName := fmt.Sprintf("%s/info/%04d-%02d-%02d.log", config.Conf.Logs.Path, now.Year(), now.Month(), now.Day())
 	errorLogFileName := fmt.Sprintf("%s/error/%04d-%02d-%02d.log", config.Conf.Logs.Path, now.Year(), now.Month(), now.Day())
@@ -104,6 +105,8 @@ func InitLogger() {
 	coreArr = append(coreArr, errorFileCore)
 
 	logger := zap.New(zapcore.NewTee(coreArr...), zap.AddCaller())
-	Log = logger.Sugar()
-	Log.Info("初始化zap日志完成!")
+	_Log = logger.Sugar()
+	_Log.Info("初始化zap日志完成!")
+
+	return _Log
 }

@@ -1,19 +1,19 @@
 package controller
 
 import (
-	"go-web-mini/app/admin/dto"
-	"go-web-mini/app/admin/model"
-	"go-web-mini/app/admin/repository"
-	"go-web-mini/common"
-	"go-web-mini/config"
-	pkg_response "go-web-mini/pkg/response"
-	pkg_util "go-web-mini/pkg/util"
+	dao "osstp-go-hive/app/admin/dao"
+	"osstp-go-hive/app/admin/dto"
+	"osstp-go-hive/app/admin/model"
+	"osstp-go-hive/config"
+	"osstp-go-hive/global"
+	pkg_response "osstp-go-hive/pkg/response"
+	pkg_util "osstp-go-hive/pkg/util"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/thoas/go-funk"
 
-	"go-web-mini/app/admin/vo"
+	"osstp-go-hive/app/admin/vo"
 	"strconv"
 )
 
@@ -27,19 +27,19 @@ type IUserController interface {
 }
 
 type UserController struct {
-	UserRepository repository.IUserRepository
+	UserDao dao.IUserDao
 }
 
 // 构造函数
 func NewUserController() IUserController {
-	userRepository := repository.NewUserRepository()
-	userController := UserController{UserRepository: userRepository}
+	UserDao := dao.NewUserDao()
+	userController := UserController{UserDao: UserDao}
 	return userController
 }
 
 // 获取当前登录用户信息
 func (uc UserController) GetUserInfo(c *gin.Context) {
-	user, err := uc.UserRepository.GetCurrentUser(c)
+	user, err := uc.UserDao.GetCurrentUser(c)
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取当前用户信息失败: "+err.Error())
 		return
@@ -59,14 +59,14 @@ func (uc UserController) GetUsers(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
 	// 获取
-	users, total, err := uc.UserRepository.GetUsers(&req)
+	users, total, err := uc.UserDao.GetUsers(&req)
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取用户列表失败: "+err.Error())
 		return
@@ -84,8 +84,8 @@ func (uc UserController) ChangePwd(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
@@ -106,7 +106,7 @@ func (uc UserController) ChangePwd(c *gin.Context) {
 	req.NewPassword = string(decodeNewPassword)
 
 	// 获取当前用户
-	user, err := uc.UserRepository.GetCurrentUser(c)
+	user, err := uc.UserDao.GetCurrentUser(c)
 	if err != nil {
 		pkg_response.Fail(c, nil, err.Error())
 		return
@@ -120,7 +120,14 @@ func (uc UserController) ChangePwd(c *gin.Context) {
 		return
 	}
 	// 更新密码
-	err = uc.UserRepository.ChangePwd(user.Username, pkg_util.GenPasswd(req.NewPassword))
+	var (
+		pass string
+	)
+	if pass, err = pkg_util.GenPasswd(req.NewPassword); err != nil {
+		pkg_response.Fail(c, nil, "请更换密码")
+		return
+	}
+	err = uc.UserDao.ChangePwd(user.Username, pass)
 	if err != nil {
 		pkg_response.Fail(c, nil, "更新密码失败: "+err.Error())
 		return
@@ -137,8 +144,8 @@ func (uc UserController) CreateUser(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
@@ -159,7 +166,7 @@ func (uc UserController) CreateUser(c *gin.Context) {
 	}
 
 	// 当前用户角色排序最小值（最高等级角色）以及当前用户
-	currentRoleSortMin, ctxUser, err := uc.UserRepository.GetCurrentUserMinRoleSort(c)
+	currentRoleSortMin, ctxUser, err := uc.UserDao.GetCurrentUserMinRoleSort(c)
 	if err != nil {
 		pkg_response.Fail(c, nil, err.Error())
 		return
@@ -168,7 +175,7 @@ func (uc UserController) CreateUser(c *gin.Context) {
 	// 获取前端传来的用户角色id
 	reqRoleIds := req.RoleIds
 	// 根据角色id获取角色
-	rr := repository.NewRoleRepository()
+	rr := dao.NewRoleDao()
 	roles, err := rr.GetRolesByIds(reqRoleIds)
 	if err != nil {
 		pkg_response.Fail(c, nil, "根据角色ID获取角色信息失败: "+err.Error())
@@ -195,9 +202,16 @@ func (uc UserController) CreateUser(c *gin.Context) {
 	if req.Password == "" {
 		req.Password = "123456"
 	}
+	var (
+		pass string
+	)
+	if pass, err = pkg_util.GenPasswd(req.Password); err != nil {
+		pkg_response.Fail(c, nil, "请更换密码")
+		return
+	}
 	user := model.User{
 		Username:     req.Username,
-		Password:     pkg_util.GenPasswd(req.Password),
+		Password:     pass,
 		Mobile:       req.Mobile,
 		Avatar:       req.Avatar,
 		Nickname:     &req.Nickname,
@@ -207,7 +221,7 @@ func (uc UserController) CreateUser(c *gin.Context) {
 		Roles:        roles,
 	}
 
-	err = uc.UserRepository.CreateUser(&user)
+	err = uc.UserDao.CreateUser(&user)
 	if err != nil {
 		pkg_response.Fail(c, nil, "创建用户失败: "+err.Error())
 		return
@@ -225,8 +239,8 @@ func (uc UserController) UpdateUserById(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
@@ -239,14 +253,14 @@ func (uc UserController) UpdateUserById(c *gin.Context) {
 	}
 
 	// 根据path中的userId获取用户信息
-	oldUser, err := uc.UserRepository.GetUserById(uint(userId))
+	oldUser, err := uc.UserDao.GetUserById(uint(userId))
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取需要更新的用户信息失败: "+err.Error())
 		return
 	}
 
 	// 获取当前用户
-	ctxUser, err := uc.UserRepository.GetCurrentUser(c)
+	ctxUser, err := uc.UserDao.GetCurrentUser(c)
 	if err != nil {
 		pkg_response.Fail(c, nil, err.Error())
 		return
@@ -267,7 +281,7 @@ func (uc UserController) UpdateUserById(c *gin.Context) {
 	// 获取前端传来的用户角色id
 	reqRoleIds := req.RoleIds
 	// 根据角色id获取角色
-	rr := repository.NewRoleRepository()
+	rr := dao.NewRoleDao()
 	roles, err := rr.GetRolesByIds(reqRoleIds)
 	if err != nil {
 		pkg_response.Fail(c, nil, "根据角色ID获取角色信息失败: "+err.Error())
@@ -324,7 +338,7 @@ func (uc UserController) UpdateUserById(c *gin.Context) {
 		// 如果是更新别人
 		// 用户不能更新比自己角色等级高的或者相同等级的用户
 		// 根据path中的userIdID获取用户角色排序最小值
-		minRoleSorts, err := uc.UserRepository.GetUserMinRoleSortsByIds([]uint{uint(userId)})
+		minRoleSorts, err := uc.UserDao.GetUserMinRoleSortsByIds([]uint{uint(userId)})
 		if err != nil || len(minRoleSorts) == 0 {
 			pkg_response.Fail(c, nil, "根据用户ID获取用户角色排序最小值失败")
 			return
@@ -349,13 +363,20 @@ func (uc UserController) UpdateUserById(c *gin.Context) {
 				return
 			}
 			req.Password = string(decodeData)
-			user.Password = pkg_util.GenPasswd(req.Password)
+			var (
+				pass string
+			)
+			if pass, err = pkg_util.GenPasswd(req.Password); err != nil {
+				pkg_response.Fail(c, nil, "请更换密码")
+				return
+			}
+			user.Password = pass
 		}
 
 	}
 
 	// 更新用户
-	err = uc.UserRepository.UpdateUser(&user)
+	err = uc.UserDao.UpdateUser(&user)
 	if err != nil {
 		pkg_response.Fail(c, nil, "更新用户失败: "+err.Error())
 		return
@@ -373,8 +394,8 @@ func (uc UserController) BatchDeleteUserByIds(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
@@ -382,14 +403,14 @@ func (uc UserController) BatchDeleteUserByIds(c *gin.Context) {
 	// 前端传来的用户ID
 	reqUserIds := req.UserIds
 	// 根据用户ID获取用户角色排序最小值
-	roleMinSortList, err := uc.UserRepository.GetUserMinRoleSortsByIds(reqUserIds)
+	roleMinSortList, err := uc.UserDao.GetUserMinRoleSortsByIds(reqUserIds)
 	if err != nil || len(roleMinSortList) == 0 {
 		pkg_response.Fail(c, nil, "根据用户ID获取用户角色排序最小值失败")
 		return
 	}
 
 	// 当前用户角色排序最小值（最高等级角色）以及当前用户
-	minSort, ctxUser, err := uc.UserRepository.GetCurrentUserMinRoleSort(c)
+	minSort, ctxUser, err := uc.UserDao.GetCurrentUserMinRoleSort(c)
 	if err != nil {
 		pkg_response.Fail(c, nil, err.Error())
 		return
@@ -410,7 +431,7 @@ func (uc UserController) BatchDeleteUserByIds(c *gin.Context) {
 		}
 	}
 
-	err = uc.UserRepository.BatchDeleteUserByIds(reqUserIds)
+	err = uc.UserDao.BatchDeleteUserByIds(reqUserIds)
 	if err != nil {
 		pkg_response.Fail(c, nil, "删除用户失败: "+err.Error())
 		return

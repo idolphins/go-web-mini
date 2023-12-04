@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	pkg_response "go-web-mini/pkg/response"
+	pkg_response "osstp-go-hive/pkg/response"
 	"time"
 
 	"github.com/gin-gonic/gin"

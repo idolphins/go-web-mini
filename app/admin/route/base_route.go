@@ -1,4 +1,4 @@
-package routes
+package route
 
 import (
 	jwt "github.com/appleboy/gin-jwt/v2"

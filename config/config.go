@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	pkg_util "go-web-mini/pkg/util"
+	pkg_util "osstp-go-hive/pkg/util"
 
 	"os"
 
@@ -67,6 +67,7 @@ func InitConfig() {
 type SystemConfig struct {
 	Mode            string `mapstructure:"mode" json:"mode"`
 	UrlPathPrefix   string `mapstructure:"url-path-prefix" json:"urlPathPrefix"`
+	Host            string `mapstructure:"host" json:"host"`
 	Port            int    `mapstructure:"port" json:"port"`
 	InitData        bool   `mapstructure:"init-data" json:"initData"`
 	RSAPublicKey    string `mapstructure:"rsa-public-key" json:"rsaPublicKey"`

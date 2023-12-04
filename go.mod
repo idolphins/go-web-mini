@@ -1,4 +1,4 @@
-module go-web-mini
+module osstp-go-hive
 
 go 1.15
 
@@ -15,7 +15,7 @@ require (
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
-	github.com/juju/ratelimit v1.0.1
+	github.com/juju/ratelimit v1.0.2
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect

@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"go-web-mini/app/admin/repository"
-	"go-web-mini/common"
-	"go-web-mini/config"
-	"go-web-mini/middleware"
-	"go-web-mini/routes"
 	"net/http"
 	"os"
 	"os/signal"
+	dao "osstp-go-hive/app/admin/dao"
+	"osstp-go-hive/app/admin/middleware"
+	"osstp-go-hive/config"
+	"osstp-go-hive/global"
+	"osstp-go-hive/initialize"
+	"osstp-go-hive/routes"
 	"syscall"
 	"time"
 )
@@ -20,34 +21,34 @@ func init() {
 	config.InitConfig()
 
 	// 初始化日志
-	common.InitLogger()
+	global.ZLog = initialize.InitLogger()
 
 	// 初始化数据库(mysql)
-	common.InitMysql()
+	global.DB = initialize.InitMysql()
 
 	// 初始化casbin策略管理器
-	common.InitCasbinEnforcer()
+	global.CasbinEnforcer = initialize.InitCasbinEnforcer()
 
 	// 初始化Validator数据校验
-	common.InitValidate()
+	global.Validate, global.Trans = initialize.InitValidate()
 
 	// 初始化mysql数据
-	common.InitData()
+	initialize.InitData()
 }
 
 func main() {
 
 	// 操作日志中间件处理日志时没有将日志发送到rabbitmq或者kafka中, 而是发送到了channel中
 	// 这里开启3个goroutine处理channel将日志记录到数据库
-	logRepository := repository.NewOperationLogRepository()
+	logdao := dao.NewOperationLogDao()
 	for i := 0; i < 3; i++ {
-		go logRepository.SaveOperationLogChannel(middleware.OperationLogChan)
+		go logdao.SaveOperationLogChannel(middleware.OperationLogChan)
 	}
 
 	// 注册所有路由
 	r := routes.InitRoutes()
 
-	host := "localhost"
+	host := config.Conf.System.Host
 	port := config.Conf.System.Port
 
 	srv := &http.Server{
@@ -59,11 +60,11 @@ func main() {
 	// it won't block the graceful shutdown handling below
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			common.Log.Fatalf("listen: %s\n", err)
+			global.ZLog.Fatalf("listen: %s\n", err)
 		}
 	}()
 
-	common.Log.Info(fmt.Sprintf("Server is running at %s:%d/%s", host, port, config.Conf.System.UrlPathPrefix))
+	global.ZLog.Info(fmt.Sprintf("Server is running at %s:%d/%s", host, port, config.Conf.System.UrlPathPrefix))
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.
@@ -73,16 +74,16 @@ func main() {
 	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	common.Log.Info("Shutting down server...")
+	global.ZLog.Info("Shutting down server...")
 
 	// The context is used to inform the server it has 5 seconds to finish
 	// the request it is currently handling
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		common.Log.Fatal("Server forced to shutdown:", err)
+		global.ZLog.Fatal("Server forced to shutdown:", err)
 	}
 
-	common.Log.Info("Server exiting!")
+	global.ZLog.Info("Server exiting!")
 
 }

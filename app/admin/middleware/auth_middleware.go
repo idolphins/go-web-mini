@@ -2,13 +2,13 @@ package middleware
 
 import (
 	"fmt"
-	"go-web-mini/app/admin/model"
-	"go-web-mini/app/admin/repository"
-	"go-web-mini/app/admin/vo"
-	"go-web-mini/common"
-	"go-web-mini/config"
-	pkg_response "go-web-mini/pkg/response"
-	pkg_util "go-web-mini/pkg/util"
+	"osstp-go-hive/app/admin/dao"
+	"osstp-go-hive/app/admin/model"
+	"osstp-go-hive/app/admin/vo"
+	"osstp-go-hive/config"
+	"osstp-go-hive/global"
+	pkg_response "osstp-go-hive/pkg/response"
+	pkg_util "osstp-go-hive/pkg/util"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -81,8 +81,8 @@ func login(c *gin.Context) (interface{}, error) {
 	}
 
 	// 密码校验
-	userRepository := repository.NewUserRepository()
-	user, err := userRepository.Login(u)
+	UserDao := dao.NewUserDao()
+	user, err := UserDao.Login(u)
 	if err != nil {
 		return nil, err
 	}
@@ -109,14 +109,14 @@ func authorizator(data interface{}, c *gin.Context) bool {
 // 用户登录校验失败处理
 func unauthorized(c *gin.Context, code int, message string) {
 	ctx := pkg_response.Ctx{Context: c}
-	common.Log.Debugf("JWT认证失败, 错误码: %d, 错误信息: %s", code, message)
-	ctx.Response(code, code, nil, pkg_response.ResponseMessage{Msg: fmt.Sprintf("JWT认证失败, 错误码: %d, 错误信息: %s", code, message)})
+	global.ZLog.Debugf("JWT认证失败, 错误码: %d, 错误信息: %s", code, message)
+	ctx.Response(code, nil, pkg_response.ResponseMessage{Msg: fmt.Sprintf("JWT认证失败, 错误码: %d, 错误信息: %s", code, message)})
 }
 
 // 登录成功后的响应
 func loginResponse(c *gin.Context, code int, token string, expires time.Time) {
 	ctx := pkg_response.Ctx{Context: c}
-	ctx.Response(code, code,
+	ctx.Response(code,
 		gin.H{
 			"token":   token,
 			"expires": expires.Format("2006-01-02 15:04:05"),
@@ -133,7 +133,7 @@ func logoutResponse(c *gin.Context, code int) {
 // 刷新token后的响应
 func refreshResponse(c *gin.Context, code int, token string, expires time.Time) {
 	ctx := pkg_response.Ctx{Context: c}
-	ctx.Response(code, code,
+	ctx.Response(code,
 		gin.H{
 			"token":   token,
 			"expires": expires,

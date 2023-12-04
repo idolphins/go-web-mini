@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"go-web-mini/app/admin/model"
-	"go-web-mini/app/admin/repository"
-	"go-web-mini/app/admin/vo"
-	"go-web-mini/common"
-	pkg_response "go-web-mini/pkg/response"
+	"osstp-go-hive/app/admin/dao"
+	"osstp-go-hive/app/admin/model"
+	"osstp-go-hive/app/admin/vo"
+	"osstp-go-hive/global"
+	pkg_response "osstp-go-hive/pkg/response"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -24,18 +24,18 @@ type IMenuController interface {
 }
 
 type MenuController struct {
-	MenuRepository repository.IMenuRepository
+	MenuDao dao.IMenuDao
 }
 
 func NewMenuController() IMenuController {
-	menuRepository := repository.NewMenuRepository()
-	menuController := MenuController{MenuRepository: menuRepository}
+	MenuDao := dao.NewMenuDao()
+	menuController := MenuController{MenuDao: MenuDao}
 	return menuController
 }
 
 // 获取菜单列表
 func (mc MenuController) GetMenus(c *gin.Context) {
-	menus, err := mc.MenuRepository.GetMenus()
+	menus, err := mc.MenuDao.GetMenus()
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取菜单列表失败: "+err.Error())
 		return
@@ -45,7 +45,7 @@ func (mc MenuController) GetMenus(c *gin.Context) {
 
 // 获取菜单树
 func (mc MenuController) GetMenuTree(c *gin.Context) {
-	menuTree, err := mc.MenuRepository.GetMenuTree()
+	menuTree, err := mc.MenuDao.GetMenuTree()
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取菜单树失败: "+err.Error())
 		return
@@ -62,14 +62,14 @@ func (mc MenuController) CreateMenu(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
 
 	// 获取当前用户
-	ur := repository.NewUserRepository()
+	ur := dao.NewUserDao()
 	ctxUser, err := ur.GetCurrentUser(c)
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取当前用户信息失败")
@@ -94,7 +94,7 @@ func (mc MenuController) CreateMenu(c *gin.Context) {
 		Creator:    ctxUser.Username,
 	}
 
-	err = mc.MenuRepository.CreateMenu(&menu)
+	err = mc.MenuDao.CreateMenu(&menu)
 	if err != nil {
 		pkg_response.Fail(c, nil, "创建菜单失败: "+err.Error())
 		return
@@ -111,8 +111,8 @@ func (mc MenuController) UpdateMenuById(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
@@ -125,7 +125,7 @@ func (mc MenuController) UpdateMenuById(c *gin.Context) {
 	}
 
 	// 获取当前用户
-	ur := repository.NewUserRepository()
+	ur := dao.NewUserDao()
 	ctxUser, err := ur.GetCurrentUser(c)
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取当前用户信息失败")
@@ -150,7 +150,7 @@ func (mc MenuController) UpdateMenuById(c *gin.Context) {
 		Creator:    ctxUser.Username,
 	}
 
-	err = mc.MenuRepository.UpdateMenuById(uint(menuId), &menu)
+	err = mc.MenuDao.UpdateMenuById(uint(menuId), &menu)
 	if err != nil {
 		pkg_response.Fail(c, nil, "更新菜单失败: "+err.Error())
 		return
@@ -169,12 +169,12 @@ func (mc MenuController) BatchDeleteMenuByIds(c *gin.Context) {
 		return
 	}
 	// 参数校验
-	if err := common.Validate.Struct(&req); err != nil {
-		errStr := err.(validator.ValidationErrors)[0].Translate(common.Trans)
+	if err := global.Validate.Struct(&req); err != nil {
+		errStr := err.(validator.ValidationErrors)[0].Translate(global.Trans)
 		pkg_response.Fail(c, nil, errStr)
 		return
 	}
-	err := mc.MenuRepository.BatchDeleteMenuByIds(req.MenuIds)
+	err := mc.MenuDao.BatchDeleteMenuByIds(req.MenuIds)
 	if err != nil {
 		pkg_response.Fail(c, nil, "删除菜单失败: "+err.Error())
 		return
@@ -192,7 +192,7 @@ func (mc MenuController) GetUserMenusByUserId(c *gin.Context) {
 		return
 	}
 
-	menus, err := mc.MenuRepository.GetUserMenusByUserId(uint(userId))
+	menus, err := mc.MenuDao.GetUserMenusByUserId(uint(userId))
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取用户的可访问菜单列表失败: "+err.Error())
 		return
@@ -209,7 +209,7 @@ func (mc MenuController) GetUserMenuTreeByUserId(c *gin.Context) {
 		return
 	}
 
-	menuTree, err := mc.MenuRepository.GetUserMenuTreeByUserId(uint(userId))
+	menuTree, err := mc.MenuDao.GetUserMenuTreeByUserId(uint(userId))
 	if err != nil {
 		pkg_response.Fail(c, nil, "获取用户的可访问菜单树失败: "+err.Error())
 		return
