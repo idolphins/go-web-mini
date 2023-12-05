@@ -69,7 +69,7 @@ func login(c *gin.Context) (interface{}, error) {
 		return "", err
 	}
 
-	// 密码通过RSA解密
+	// RSA解密
 	decodeData, err := pkg_util.RSADecrypt([]byte(req.Password), config.Config.System.RSAPrivateBytes)
 	if err != nil {
 		return nil, err
@@ -109,8 +109,8 @@ func authorizator(data interface{}, c *gin.Context) bool {
 // 用户登录校验失败处理
 func unauthorized(c *gin.Context, code int, message string) {
 	ctx := pkg_response.Ctx{Context: c}
-	global.ZLog.Debugf("JWT认证失败, 错误码: %d, 错误信息: %s", code, message)
-	ctx.Response(code, nil, pkg_response.ResponseMessage{Msg: fmt.Sprintf("JWT认证失败, 错误码: %d, 错误信息: %s", code, message)})
+	global.ZLog.Debugf("JWT认证失败， 错误码： %d； 错误信息： %s", code, message)
+	ctx.Response(code, nil, pkg_response.ResponseMessage{Code: code, Title: "JWT认证失败", UIMsg: "请重新输入用户名、密码", Msg: fmt.Sprintf("JWT认证失败， 错误码： %d； 错误信息： %s", code, message)})
 }
 
 // 登录成功后的响应

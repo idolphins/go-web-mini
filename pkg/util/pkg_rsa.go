@@ -59,16 +59,16 @@ func RSADecrypt(base64Data, privateBytes []byte) ([]byte, error) {
 	// 解析私钥
 	block, _ := pem.Decode(privateBytes)
 	if block == nil {
-		return res, fmt.Errorf("无法解密, 私钥可能不正确")
+		return res, fmt.Errorf("RSA解密失败： 私钥可能不正确")
 	}
 	// 还原数据
 	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
-		return res, fmt.Errorf("无法解密, 私钥可能不正确, %v", err)
+		return res, fmt.Errorf("RSA解密失败，x509解析失败： %v", err)
 	}
 	res, err = rsa.DecryptPKCS1v15(rand.Reader, privateKey, data)
 	if err != nil {
-		return res, fmt.Errorf("无法解密, 私钥可能不正确, %v", err)
+		return res, fmt.Errorf("RSA解密失败，rsa解析失败： %v", err)
 	}
 	return res, nil
 }

@@ -35,11 +35,11 @@ func (ctx *Ctx) Response(httpCode int, data interface{}, message ResponseMessage
 	// code: fail=0, success=1
 	code, msg := internal.ResponseCode(httpCode, message.Code, message.Msg)
 	if message.OK == "" {
-		ok = "ok"
+		ok = "OK"
 	}
-	ctx.Context.JSON(httpCode, internal.ResponsePage{
+	ctx.Context.JSON(httpCode, internal.Response{
 		Code: code,
-		Msg:  internal.Message{Code: message.Code, Title: message.Title, Msg: msg, Cancel: message.Cancel, OK: ok},
+		Msg:  internal.Message{Code: message.Code, Title: message.Title, Msg: msg, UIMsg: message.UIMsg, Cancel: message.Cancel, OK: ok},
 		Data: data,
 	})
 }
@@ -53,11 +53,11 @@ func (ctx *Ctx) ResponsePage(httpCode int, data interface{}, count, pageIndex, p
 	// msg: default
 	code, msg := internal.ResponseCode(httpCode, message.Code, message.Msg)
 	if message.OK == "" {
-		ok = "ok"
+		ok = "OK"
 	}
 	ctx.Context.JSON(httpCode, internal.ResponsePage{
 		Code:      code,
-		Msg:       internal.Message{Code: message.Code, Title: message.Title, Msg: msg, Cancel: message.Cancel, OK: ok},
+		Msg:       internal.Message{Code: message.Code, Title: message.Title, Msg: msg, UIMsg: message.UIMsg, Cancel: message.Cancel, OK: ok},
 		Data:      data,
 		Count:     count,
 		PageIndex: pageIndex,

@@ -17,36 +17,25 @@ import (
 )
 
 func init() {
-	// 加载配置文件到全局配置结构体
 	config.InitConfig()
-
-	// 初始化日志
 	global.ZLog = initialize.InitLogger()
-
-	// 初始化数据库(mysql)
 	global.DB = initialize.InitMysql()
-
-	// 初始化casbin策略管理器
 	global.CasbinEnforcer = initialize.InitCasbinEnforcer()
-
-	// 初始化Validator数据校验
 	global.Validate, global.Trans = initialize.InitValidate()
-
-	// 初始化mysql数据
 	initialize.InitData()
 }
 
-// @title						Swagger Example API
+// @title						HIVE API
 // @version					1.0
-// @description				This is a sample server celler server.
+// @description				This is a base server.
 // @termsOfService				http://swagger.io/terms/
 // @contact.name				API Support
 // @contact.url				http://www.swagger.io/support
 // @contact.email				support@swagger.io
 // @license.name				Apache 2.0
 // @license.url				http://www.apache.org/licenses/LICENSE-2.0.html
-// @host						localhost:8080
-// @BasePath					/api/v1
+// @host						localhost:8088
+// @BasePath					/api
 // @securityDefinitions.basic	BasicAuth
 func main() {
 
