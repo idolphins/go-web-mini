@@ -58,7 +58,7 @@ casbin:
 # jwt配置
 jwt:
   # jwt标识
-  realm: test jwt
+  realm: HIVE JWT
   # 服务端密钥
   key: secret key
   # token过期时间, 小时

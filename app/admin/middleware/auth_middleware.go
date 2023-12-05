@@ -110,7 +110,7 @@ func authorizator(data interface{}, c *gin.Context) bool {
 func unauthorized(c *gin.Context, code int, message string) {
 	ctx := pkg_response.Ctx{Context: c}
 	global.ZLog.Debugf("JWT认证失败， 错误码： %d； 错误信息： %s", code, message)
-	ctx.Response(code, nil, pkg_response.ResponseMessage{Code: code, Title: "JWT认证失败", UIMsg: "请重新输入用户名、密码", Msg: fmt.Sprintf("JWT认证失败， 错误码： %d； 错误信息： %s", code, message)})
+	ctx.Response(code, nil, pkg_response.ResponseMessage{Code: code, Title: "JWT认证失败", UIMsg: "请重新输入用户名或密码", Msg: fmt.Sprintf("JWT认证失败， 错误码： %d； 错误信息： %s", code, message)})
 }
 
 // 登录成功后的响应
