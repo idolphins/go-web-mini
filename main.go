@@ -7,10 +7,10 @@ import (
 	"os"
 	"os/signal"
 	dao "osstp-go-hive/app/admin/dao"
-	"osstp-go-hive/app/admin/middleware"
 	"osstp-go-hive/config"
 	"osstp-go-hive/global"
 	"osstp-go-hive/initialize"
+	pkg_middleware "osstp-go-hive/pkg/middleware"
 	"osstp-go-hive/routes"
 	"syscall"
 	"time"
@@ -43,7 +43,7 @@ func main() {
 	// 这里开启3个goroutine处理channel将日志记录到数据库
 	logdao := dao.NewOperationLogDao()
 	for i := 0; i < 3; i++ {
-		go logdao.SaveOperationLogChannel(middleware.OperationLogChan)
+		go logdao.SaveOperationLogChannel(pkg_middleware.OperationLogChan)
 	}
 
 	// 注册所有路由
@@ -65,7 +65,8 @@ func main() {
 		}
 	}()
 
-	global.ZLog.Info(fmt.Sprintf("Server is running at %s:%d/%s", host, port, config.Config.System.UrlPathPrefix))
+	global.ZLog.Info(fmt.Sprintf("Web Server is running at %s:%d/%s", host, port, config.Config.System.WebUrlPathPrefix))
+	global.ZLog.Info(fmt.Sprintf("Mobile Server is running at %s:%d/%s", host, port, config.Config.System.MobileUrlPathPrefix))
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.

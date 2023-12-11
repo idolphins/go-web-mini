@@ -6,6 +6,7 @@ import (
 	"osstp-go-hive/app/admin/model"
 	"osstp-go-hive/app/admin/vo"
 	"osstp-go-hive/global"
+	pkg_constant "osstp-go-hive/pkg/constant"
 	pkg_util "osstp-go-hive/pkg/util"
 	"strings"
 	"time"
@@ -47,20 +48,20 @@ func NewUserDao() IUserDao {
 
 // 登录
 func (ur UserDao) Login(user *model.User) (*model.User, error) {
-	// 根据用户名获取用户(正常状态:用户状态正常)
 	var firstUser model.User
 	err := global.DB.
 		Where("username = ?", user.Username).
 		Preload("Roles").
 		First(&firstUser).Error
 	if err != nil {
-		return nil, errors.New("用户不存在")
+		// "该用户不存在"
+		return nil, errors.New(pkg_constant.MsgMap[pkg_constant.Error_user_not_exist])
 	}
 
-	// 判断用户的状态
 	userStatus := firstUser.Status
 	if userStatus != 1 {
-		return nil, errors.New("用户被禁用")
+		// "该用户被禁用"
+		return nil, errors.New(pkg_constant.MsgMap[pkg_constant.Error_user_disabled])
 	}
 
 	// 判断用户拥有的所有角色的状态,全部角色都被禁用则不能登录
@@ -75,14 +76,15 @@ func (ur UserDao) Login(user *model.User) (*model.User, error) {
 	}
 
 	if !isValidate {
-		return nil, errors.New("用户角色被禁用")
+		// "用户角色被禁用"
+		return nil, errors.New(pkg_constant.MsgMap[pkg_constant.Error_user_roles_disabled])
 	}
-	fmt.Println(user.Password)
 
 	// 校验密码
 	err = pkg_util.ComparePasswd(firstUser.Password, user.Password)
 	if err != nil {
-		return &firstUser, errors.New("密码错误")
+		// "密码错误"
+		return &firstUser, errors.New(pkg_constant.MsgMap[pkg_constant.Error_user_password])
 	}
 	return &firstUser, nil
 }
@@ -139,7 +141,6 @@ func (ur UserDao) GetCurrentUserMinRoleSort(c *gin.Context) (uint, model.User, e
 
 // 获取单个用户
 func (ur UserDao) GetUserById(id uint) (model.User, error) {
-	fmt.Println("GetUserById---")
 	var user model.User
 	err := global.DB.Where("id = ?", id).Preload("Roles").First(&user).Error
 	return user, err

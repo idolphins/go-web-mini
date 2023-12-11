@@ -1,6 +1,7 @@
-package middleware
+package mobile_middleware
 
 import (
+	"net/http"
 	"osstp-go-hive/app/admin/dao"
 	"osstp-go-hive/app/admin/model"
 	"osstp-go-hive/app/admin/vo"
@@ -15,7 +16,7 @@ import (
 )
 
 // 初始化jwt中间件
-func InitAuth() (*jwt.GinJWTMiddleware, error) {
+func InitMobileAuth() (*jwt.GinJWTMiddleware, error) {
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:           config.Config.Jwt.Realm,                                 // jwt标识
 		Key:             []byte(config.Config.Jwt.Key),                           // 服务端密钥
@@ -23,7 +24,7 @@ func InitAuth() (*jwt.GinJWTMiddleware, error) {
 		MaxRefresh:      time.Hour * time.Duration(config.Config.Jwt.MaxRefresh), // token最大刷新时间(RefreshToken过期时间=Timeout+MaxRefresh)
 		PayloadFunc:     payloadFunc,                                             // 有效载荷处理
 		IdentityHandler: identityHandler,                                         // 解析Claims
-		Authenticator:   login,                                                   // 校验token的正确性, 处理登录逻辑
+		Authenticator:   loginAuthenticator,                                      // 校验token的正确性, 处理登录逻辑
 		Authorizator:    authorizator,                                            // 用户登录校验成功处理
 		Unauthorized:    unauthorized,                                            // 用户登录校验失败处理
 		LoginResponse:   loginResponse,                                           // 登录成功后的响应
@@ -61,19 +62,16 @@ func identityHandler(c *gin.Context) interface{} {
 }
 
 // 校验token的正确性, 处理登录逻辑
-func login(c *gin.Context) (interface{}, error) {
+func loginAuthenticator(c *gin.Context) (interface{}, error) {
 	var req vo.RegisterAndLoginRequest
-	// 请求json绑定
-	if err := c.ShouldBind(&req); err != nil {
-		return "", err
-	}
+	req.Username = c.Query("username")
+	req.Password = c.Query("password")
 
 	// RSA解密
 	decodeData, err := pkg_util.RSADecrypt([]byte(req.Password), config.Config.System.RSAPrivateBytes)
 	if err != nil {
 		return nil, err
 	}
-
 	u := &model.User{
 		Username: req.Username,
 		Password: string(decodeData),
@@ -109,7 +107,7 @@ func authorizator(data interface{}, c *gin.Context) bool {
 func unauthorized(c *gin.Context, code int, message string) {
 	ctx := pkg_response.Ctx{Context: c}
 	global.ZLog.Debugf("JWT认证失败， 错误码： %d； 错误信息： %s", code, message)
-	ctx.Response(code, nil, pkg_response.ResponseMessage{Code: code, Title: "JWT认证失败", Msg: "请重新输入用户名或密码"})
+	ctx.Response(http.StatusBadRequest, nil, pkg_response.ResponseMessage{Code: code, Title: "JWT认证失败", Msg: message})
 }
 
 // 登录成功后的响应

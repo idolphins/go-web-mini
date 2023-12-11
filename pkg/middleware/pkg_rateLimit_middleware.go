@@ -1,4 +1,4 @@
-package middleware
+package pkg_middleware
 
 import (
 	pkg_response "osstp-go-hive/pkg/response"

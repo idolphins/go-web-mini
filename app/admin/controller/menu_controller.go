@@ -28,8 +28,8 @@ type MenuController struct {
 }
 
 func NewMenuController() IMenuController {
-	MenuDao := dao.NewMenuDao()
-	menuController := MenuController{MenuDao: MenuDao}
+	menuDao := dao.NewMenuDao()
+	menuController := MenuController{MenuDao: menuDao}
 	return menuController
 }
 

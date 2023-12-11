@@ -1,10 +1,9 @@
-package middleware
+package pkg_middleware
 
 import (
 	"osstp-go-hive/app/admin/dao"
 	"osstp-go-hive/app/admin/model"
-	"osstp-go-hive/config"
-	"strings"
+	pkg_tool "osstp-go-hive/pkg/tool"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +12,7 @@ import (
 // 操作日志channel
 var OperationLogChan = make(chan *model.OperationLog, 30)
 
+// Log 中间件
 func OperationLogMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 开始时间
@@ -40,13 +40,14 @@ func OperationLogMiddleware() gin.HandlerFunc {
 		username = user.Username
 
 		// 获取访问路径
-		path := strings.TrimPrefix(c.FullPath(), "/"+config.Config.System.UrlPathPrefix)
+		path := pkg_tool.TrimPrefixPath(c)
+
 		// 请求方式
 		method := c.Request.Method
 
 		// 获取接口描述
-		ApiDao := dao.NewApiDao()
-		apiDesc, _ := ApiDao.GetApiDescByPath(path, method)
+		apiDao := dao.NewApiDao()
+		apiDesc, _ := apiDao.GetApiDescByPath(path, method)
 
 		operationLog := model.OperationLog{
 			Username:   username,

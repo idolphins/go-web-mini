@@ -41,13 +41,13 @@ func NewUserController() IUserController {
 func (uc UserController) GetUserInfo(c *gin.Context) {
 	user, err := uc.UserDao.GetCurrentUser(c)
 	if err != nil {
-		pkg_response.Fail(c, nil, "获取当前用户信息失败: "+err.Error())
+		pkg_response.Fail(c, nil, "获取用户信息失败: "+err.Error())
 		return
 	}
 	userInfoDto := dto.ToUserInfoDto(user)
 	pkg_response.Success(c, gin.H{
 		"userInfo": userInfoDto,
-	}, "获取当前用户信息成功")
+	}, "获取用户信息成功")
 }
 
 // 获取用户列表

@@ -14,7 +14,7 @@ type Ctx struct {
 // success
 func Success(c *gin.Context, data interface{}, message string) {
 	ctx := Ctx{Context: c}
-	messages := ResponseMessage{Msg: message}
+	messages := ResponseMessage{Code: 1, Msg: message}
 	// 200
 	ctx.Response(http.StatusOK, data, messages)
 }
@@ -22,42 +22,30 @@ func Success(c *gin.Context, data interface{}, message string) {
 // fail
 func Fail(c *gin.Context, data interface{}, message string) {
 	ctx := Ctx{Context: c}
-	messages := ResponseMessage{Msg: message}
+	messages := ResponseMessage{Code: 0, Msg: message, OK: "OK"}
 	// 400
 	ctx.Response(http.StatusBadRequest, data, messages)
 }
 
 // custom response
 func (ctx *Ctx) Response(httpCode int, data interface{}, message ResponseMessage) {
-	var (
-		ok string = ""
-	)
 	// code: fail=0, success=1
-	code, msg := internal.ResponseCode(httpCode, message.Code, message.Msg)
-	if message.OK == "" {
-		ok = "OK"
-	}
+	code, msgCode := internal.ResponseCode(httpCode, message.Code)
 	ctx.Context.JSON(httpCode, internal.Response{
 		Code: code,
-		Msg:  internal.Message{Code: message.Code, Title: message.Title, Msg: msg, UIMsg: message.UIMsg, Cancel: message.Cancel, OK: ok},
+		Msg:  internal.Message{Code: msgCode, Title: message.Title, Msg: message.Msg, Cancel: message.Cancel, OK: internal.GetOk(message.OK)},
 		Data: data,
 	})
 }
 
 // custom response with page and index
 func (ctx *Ctx) ResponsePage(httpCode int, data interface{}, count, pageIndex, pageSize int, message ResponseMessage) {
-	var (
-		ok string = ""
-	)
 	// code: fail=0, success=1
 	// msg: default
-	code, msg := internal.ResponseCode(httpCode, message.Code, message.Msg)
-	if message.OK == "" {
-		ok = "OK"
-	}
+	code, msgCode := internal.ResponseCode(httpCode, message.Code)
 	ctx.Context.JSON(httpCode, internal.ResponsePage{
 		Code:      code,
-		Msg:       internal.Message{Code: message.Code, Title: message.Title, Msg: msg, UIMsg: message.UIMsg, Cancel: message.Cancel, OK: ok},
+		Msg:       internal.Message{Code: msgCode, Title: message.Title, Msg: message.Msg, Cancel: message.Cancel, OK: internal.GetOk(message.OK)},
 		Data:      data,
 		Count:     count,
 		PageIndex: pageIndex,

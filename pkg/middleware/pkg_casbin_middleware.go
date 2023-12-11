@@ -1,20 +1,19 @@
-package middleware
+package pkg_middleware
 
 import (
 	"osstp-go-hive/app/admin/dao"
-	"osstp-go-hive/config"
 	"osstp-go-hive/global"
 	pkg_response "osstp-go-hive/pkg/response"
+	pkg_tool "osstp-go-hive/pkg/tool"
 
 	"github.com/gin-gonic/gin"
 
-	"strings"
 	"sync"
 )
 
 var checkLock sync.Mutex
 
-// Casbin中间件, 基于RBAC的权限访问控制模型
+// WEB: Casbin中间件, 基于RBAC的权限访问控制模型
 func CasbinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := pkg_response.Ctx{Context: c}
@@ -42,7 +41,9 @@ func CasbinMiddleware() gin.HandlerFunc {
 		}
 		// 获得请求路径URL
 		//obj := strings.Replace(c.Request.URL.Path, "/"+config.Config.System.UrlPathPrefix, "", 1)
-		obj := strings.TrimPrefix(c.FullPath(), "/"+config.Config.System.UrlPathPrefix)
+		// obj := strings.TrimPrefix(c.FullPath(), "/"+config.Config.System.WebUrlPathPrefix)
+		obj := pkg_tool.TrimPrefixPath(c)
+
 		// 获取请求方式
 		act := c.Request.Method
 

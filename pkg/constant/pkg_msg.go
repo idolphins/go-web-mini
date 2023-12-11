@@ -7,11 +7,13 @@ var MsgMap = map[int]string{
 
 	Error_database_CRUD: "数据库CRUD失败",
 
-	Error_user_exist:     "该用户已存在",
-	Error_user_not_exist: "该用户不存在",
-	Error_user_password:  "密码错误",
-	Error_user_captcha:   "验证码获取失败",
-	Error_user_logout:    "退出失败",
+	Error_user_exist:          "用户已存在",
+	Error_user_not_exist:      "用户不存在",
+	Error_user_disabled:       "用户被禁用",
+	Error_user_roles_disabled: "用户角色被禁用",
+	Error_user_password:       "密码错误",
+	Error_user_captcha:        "验证码获取失败",
+	Error_user_logout:         "退出失败",
 
 	Error_token_check:   "Token鉴权失败",
 	Error_token_timeout: "Token已超时",

@@ -7,11 +7,13 @@ const (
 
 	Error_database_CRUD = 33060
 
-	Error_user_exist     = 10001
-	Error_user_not_exist = 10002
-	Error_user_password  = 10003
-	Error_user_captcha   = 10004
-	Error_user_logout    = 10005
+	Error_user_exist          = 10001
+	Error_user_not_exist      = 10002
+	Error_user_disabled       = 10003
+	Error_user_roles_disabled = 10004
+	Error_user_password       = 10005
+	Error_user_captcha        = 10006
+	Error_user_logout         = 10007
 
 	Error_token_check   = 20001
 	Error_token_timeout = 20002

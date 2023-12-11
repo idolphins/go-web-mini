@@ -25,15 +25,15 @@ type ApiController struct {
 }
 
 func NewApiController() IApiController {
-	ApiDao := dao.NewApiDao()
-	apiController := ApiController{ApiDao: ApiDao}
+	apiDao := dao.NewApiDao()
+	apiController := ApiController{ApiDao: apiDao}
 	return apiController
 }
 
-//	@Title			获取接口列表
-//	@Description	获取接口列表
-//	@Param			id	path	int	true	"Account ID"
-//	@router			/ [GET]
+// @Title			获取接口列表
+// @Description	获取接口列表
+// @Param			id	path	int	true	"Account ID"
+// @router			/ [GET]
 func (ac ApiController) GetApis(c *gin.Context) {
 	var req vo.ApiListRequest
 	// 参数绑定
@@ -58,10 +58,10 @@ func (ac ApiController) GetApis(c *gin.Context) {
 	}, "获取接口列表成功")
 }
 
-//	@Title			获取接口树
-//	@Description	获取接口树(按接口Category字段分类)
-//	@Param			id	path	int	true	"Account ID"
-//	@router			/tree [GET]
+// @Title			获取接口树
+// @Description	获取接口树(按接口Category字段分类)
+// @Param			id	path	int	true	"Account ID"
+// @router			/tree [GET]
 func (ac ApiController) GetApiTree(c *gin.Context) {
 	tree, err := ac.ApiDao.GetApiTree()
 	if err != nil {

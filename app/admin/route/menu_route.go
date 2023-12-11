@@ -2,7 +2,7 @@ package route
 
 import (
 	"osstp-go-hive/app/admin/controller"
-	"osstp-go-hive/app/admin/middleware"
+	pkg_middleware "osstp-go-hive/pkg/middleware"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,7 @@ func InitMenuRoutes(r *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) gi
 	// 开启jwt认证中间件
 	router.Use(authMiddleware.MiddlewareFunc())
 	// 开启casbin鉴权中间件
-	router.Use(middleware.CasbinMiddleware())
+	router.Use(pkg_middleware.CasbinMiddleware())
 	{
 		router.GET("/tree", menuController.GetMenuTree)
 		router.GET("/list", menuController.GetMenus)

@@ -1,32 +1,39 @@
 package internal
 
 import (
-	"net/http"
 	pkg_constant "osstp-go-hive/pkg/constant"
 )
 
-func ResponseCode(httpCode int, msgCode int, message string) (int, string) {
+func ResponseCode(httpCode int, msgCode int) (int, int) {
 	var (
-		code int
-		msg  string
+		code        int
+		tempMsgCode int
 	)
 
 	switch httpCode {
-	case http.StatusOK:
+	case 200:
 		// Only success return 1
 		code = pkg_constant.Success
+		tempMsgCode = 1
 	default:
 		// Others return 0
 		code = pkg_constant.Fail
+		tempMsgCode = msgCode
 	}
 
-	// Default msgCode
-	// if temp == "", use message value
-	if temp := pkg_constant.StatusMsg(msgCode); temp != "" {
-		msg = temp
+	return code, tempMsgCode
+}
+
+func GetOk(msg string) string {
+	var (
+		ok string = ""
+	)
+
+	if msg == "" {
+		ok = "OK"
 	} else {
-		msg = message
+		ok = msg
 	}
 
-	return code, msg
+	return ok
 }

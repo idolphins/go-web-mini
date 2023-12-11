@@ -65,15 +65,16 @@ func InitConfig() {
 }
 
 type SystemConfig struct {
-	Mode            string `mapstructure:"mode" json:"mode"`
-	UrlPathPrefix   string `mapstructure:"url-path-prefix" json:"urlPathPrefix"`
-	Host            string `mapstructure:"host" json:"host"`
-	Port            int    `mapstructure:"port" json:"port"`
-	InitData        bool   `mapstructure:"init-data" json:"initData"`
-	RSAPublicKey    string `mapstructure:"rsa-public-key" json:"rsaPublicKey"`
-	RSAPrivateKey   string `mapstructure:"rsa-private-key" json:"rsaPrivateKey"`
-	RSAPublicBytes  []byte `mapstructure:"-" json:"-"`
-	RSAPrivateBytes []byte `mapstructure:"-" json:"-"`
+	Mode                string `mapstructure:"mode" json:"mode"`
+	WebUrlPathPrefix    string `mapstructure:"web-url-path-prefix" json:"webUrlPathPrefix"`
+	MobileUrlPathPrefix string `mapstructure:"mobile-url-path-prefix" json:"mobileUrlPathPrefix"`
+	Host                string `mapstructure:"host" json:"host"`
+	Port                int    `mapstructure:"port" json:"port"`
+	InitData            bool   `mapstructure:"init-data" json:"initData"`
+	RSAPublicKey        string `mapstructure:"rsa-public-key" json:"rsaPublicKey"`
+	RSAPrivateKey       string `mapstructure:"rsa-private-key" json:"rsaPrivateKey"`
+	RSAPublicBytes      []byte `mapstructure:"-" json:"-"`
+	RSAPrivateBytes     []byte `mapstructure:"-" json:"-"`
 }
 
 type LogsConfig struct {
