@@ -270,6 +270,13 @@ func InitData() {
 		},
 		{
 			Method:   "POST",
+			Path:     "/base/register",
+			Category: "base",
+			Desc:     "新用户注册",
+			Creator:  "系统",
+		},
+		{
+			Method:   "POST",
 			Path:     "/user/info",
 			Category: "user",
 			Desc:     "获取当前登录用户信息",
@@ -485,6 +492,7 @@ func InitData() {
 				"/base/login",
 				"/base/logout",
 				"/base/refreshToken",
+				"/base/register",
 				"/user/info",
 				"/menu/access/tree/:userId",
 			}

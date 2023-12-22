@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/patrickmn/go-cache"
 	"github.com/thoas/go-funk"
+	"gorm.io/gorm"
 )
 
 type IUserDao interface {
@@ -33,6 +34,8 @@ type IUserDao interface {
 	SetUserInfoCache(username string, user model.User) // 设置用户信息缓存
 	UpdateUserInfoCacheByRoleId(roleId uint) error     // 根据角色ID更新拥有该角色的用户信息缓存
 	ClearUserInfoCache()                               // 清理所有用户信息缓存
+
+	SearchUser(c *gin.Context, username string, mobile string)
 }
 
 type UserDao struct {
@@ -309,4 +312,30 @@ func (ur UserDao) UpdateUserInfoCacheByRoleId(roleId uint) error {
 // 清理所有用户信息缓存
 func (ur UserDao) ClearUserInfoCache() {
 	userInfoCache.Flush()
+}
+
+// 查询某个用户是否存在
+func (ur UserDao) SearchUser(c *gin.Context, username string, mobile string) {
+	var oldUser model.User
+	result := global.DB.Where("username = ? AND mobile = ?", username, mobile).First(&oldUser)
+
+	if result.Error != nil && !result.RecordNotFound() {
+        // 发生错误且不是因为未找到记录而导致的错误
+        panic(result.Error)
+    } else if result.RecordNotFound() {
+        fmt.Println("用户不存在！")
+    } else {
+        fmt.Printf("用户 %s 已经存在\n", user.Name)
+    }
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+		// 发生错误且不是因为未找到记录而导致的错误
+        panic(result.Error)
+	}else if
+		// 发生错误且不是因为未找到记录而导致的错误
+		fmt.Println("用户不存在！" + result.Error.Error())
+		fmt.Println("用户不存在！")
+	} else {
+		fmt.Printf("用户 %s 已经存在\n", oldUser.Username)
+	}
+
 }

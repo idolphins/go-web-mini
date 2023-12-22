@@ -9,6 +9,7 @@ import (
 
 func InitAdminRoutes(apiGroup *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 
+	// 用户登录、退出，新用户注册
 	route.InitBaseRoutes(apiGroup, authMiddleware)         // 注册基础路由, 不需要jwt认证中间件,不需要casbin中间件
 	route.InitUserRoutes(apiGroup, authMiddleware)         // 注册用户路由, jwt认证中间件,casbin鉴权中间件
 	route.InitRoleRoutes(apiGroup, authMiddleware)         // 注册角色路由, jwt认证中间件,casbin鉴权中间件

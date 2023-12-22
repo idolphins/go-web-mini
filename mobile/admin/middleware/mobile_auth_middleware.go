@@ -1,6 +1,7 @@
 package mobile_middleware
 
 import (
+	"fmt"
 	"net/http"
 	"osstp-go-hive/app/admin/dao"
 	"osstp-go-hive/app/admin/model"
@@ -64,8 +65,11 @@ func identityHandler(c *gin.Context) interface{} {
 // 校验token的正确性, 处理登录逻辑
 func loginAuthenticator(c *gin.Context) (interface{}, error) {
 	var req vo.RegisterAndLoginRequest
-	req.Username = c.Query("username")
-	req.Password = c.Query("password")
+
+	if err := c.ShouldBindQuery(&req); err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
 
 	// RSA解密
 	decodeData, err := pkg_util.RSADecrypt([]byte(req.Password), config.Config.System.RSAPrivateBytes)
