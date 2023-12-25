@@ -45,9 +45,8 @@ func (uc UserController) GetUserInfo(c *gin.Context) {
 		return
 	}
 	userInfoDto := dto.ToUserInfoDto(user)
-	pkg_response.Success(c, gin.H{
-		"userInfo": userInfoDto,
-	}, "获取用户信息成功")
+	pkg_response.Success(c,
+		userInfoDto, "获取用户信息成功")
 }
 
 // 获取用户列表

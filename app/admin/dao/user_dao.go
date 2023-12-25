@@ -35,7 +35,7 @@ type IUserDao interface {
 	UpdateUserInfoCacheByRoleId(roleId uint) error     // 根据角色ID更新拥有该角色的用户信息缓存
 	ClearUserInfoCache()                               // 清理所有用户信息缓存
 
-	SearchUser(c *gin.Context, username string, mobile string)
+	SearchUser(username string, mobile string) (*model.User, error)
 }
 
 type UserDao struct {
@@ -315,27 +315,24 @@ func (ur UserDao) ClearUserInfoCache() {
 }
 
 // 查询某个用户是否存在
-func (ur UserDao) SearchUser(c *gin.Context, username string, mobile string) {
+func (ur UserDao) SearchUser(username string, mobile string) (*model.User, error) {
 	var oldUser model.User
-	result := global.DB.Where("username = ? AND mobile = ?", username, mobile).First(&oldUser)
+	result := global.DB.Where("username = ? OR mobile = ?", username, mobile).First(&oldUser)
 
-	if result.Error != nil && !result.RecordNotFound() {
-        // 发生错误且不是因为未找到记录而导致的错误
-        panic(result.Error)
-    } else if result.RecordNotFound() {
-        fmt.Println("用户不存在！")
-    } else {
-        fmt.Printf("用户 %s 已经存在\n", user.Name)
-    }
 	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 		// 发生错误且不是因为未找到记录而导致的错误
-        panic(result.Error)
-	}else if
-		// 发生错误且不是因为未找到记录而导致的错误
+		panic(result.Error)
+	} else if result.Error == gorm.ErrRecordNotFound {
 		fmt.Println("用户不存在！" + result.Error.Error())
-		fmt.Println("用户不存在！")
+		return nil, errors.New("用户不存在")
 	} else {
-		fmt.Printf("用户 %s 已经存在\n", oldUser.Username)
-	}
+		if mobile == oldUser.Mobile {
+			return &oldUser, errors.New("手机号已经注册")
+		}
+		if username == oldUser.Username {
+			return &oldUser, errors.New("用户名已经注册")
+		}
 
+		return &oldUser, errors.New("用户已经被注册")
+	}
 }
